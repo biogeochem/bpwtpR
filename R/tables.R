@@ -33,7 +33,7 @@ summarize_monthly_table <- function(df = "", grouping = "",
                        sampling_station, "location.")
   pander(table.values, justify = c("left", rep("center",
                                                ncol(table.values)-1)),
-         style = "grid",
+         style = "rmarkdown",
          split.table = Inf, use.hyphenation = T,
          caption = caption.text, graph.fontsize = 9, digits = 2)
 }
@@ -85,7 +85,7 @@ group_table_historical <- function(df = "", year_select = "", grouping = "",
 
     pander(table.values[,5:ncol(table.values)],
            justify = c("left", rep("center",ncol(table.values)-5)),
-           style = "grid", split.table = Inf,
+           style = "rmarkdown", split.table = Inf,
            caption = caption.text, graph.fontsize = 9, digits = 2)
 
   } else {
@@ -96,7 +96,7 @@ group_table_historical <- function(df = "", year_select = "", grouping = "",
 
     pander(table.values[,2:ncol(table.values)],
            justify = c("left", rep("centre",ncol(table.values)-2)),
-           style = "grid", split.table = Inf,
+           style = "rmarkdown", split.table = Inf,
            caption = caption.text, graph.fontsize = 9, digits = 2)
 
   }
