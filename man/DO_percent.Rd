@@ -9,16 +9,12 @@ DO_percent(labdat, datadir = "data/data_tables", O2table_file = "O2Table.csv")
 \arguments{
 \item{labdat}{Weekly routine sampling data.}
 
-\item{O2_table}{Table of oxygen solubilities in water.}
+\item{O2table_file}{Table of oxygen solubilities in water.}
 }
 \value{
 Dataframe containing datasheet (RawWater, ClearWell), station (Raw,
 Clearwell), datetimes, parameter (DO_percent), and result (DO
 concentration expressed as a percentage).
-
-Dataframe containing datasheet (ClearWell), station (Clearwell),
-datetimes, parameter (DOsat_percent), and result (DO concentration
-expressed as a percentage).
 }
 \description{
 Calculates dissolved oxygen concentration (\%).
@@ -33,7 +29,5 @@ Dissolved Oxygen (\%) = Bench Diss. Oxygen (mg/L) ÷ Oxygen Solubility (mg/L) * 
 }
 \examples{
 calc_BenchDO_percent(O2_table = O2_table, labdat = labdat)
-
-DO_percent(labdat = labdat)
 
 }
