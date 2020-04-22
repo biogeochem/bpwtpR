@@ -4,52 +4,19 @@
 \alias{read_labdat}
 \title{Read routine lab data file}
 \usage{
-read_labdat(
-  datadir = "data",
-  labdat_file = "",
-  bdl_replacement = TRUE,
-  datavalidation = FALSE
-)
-
-read_labdat(
-  datadir = "data",
-  labdat_file = "",
-  bdl_replacement = TRUE,
-  datavalidation = FALSE
-)
-
-read_labdat(
-  datadir = "data",
-  labdat_file = "",
-  bdl_replacement = TRUE,
-  datavalidation = FALSE
-)
+read_labdat(datadir = "data", labdat_file = "")
 }
 \arguments{
 \item{datadir}{data directory}
 
 \item{labdat_file}{lab data filename}
-
-\item{bdl_replacement}{replacment option for below detection limit values (bdl)}
-
-\item{data_validation}{toggled option for data validation. Provides extra column to compare replaced result values.}
 }
 \value{
-data table with replaced bdl values
-
-data table with replaced bdl values
-
 data table with replaced bdl values
 }
 \description{
 Read routine lab data file
-
-Read routine lab data file
-
-Read routine lab data file
 }
 \examples{
-# read_labdat(datadir = "data", labdat_file = "BPWTP_labdat.csv")
-# read_labdat(datadir = "data", labdat_file = "BPWTP_labdat.csv")
 # read_labdat(datadir = "data", labdat_file = "BPWTP_labdat.csv")
 }

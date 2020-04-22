@@ -20,6 +20,6 @@ Calculates the sum of Chlorine-pre, Chlorine-intermed, and Chlorine-post.
 Total Chlorine dose = Chlorine-pre + Chlorine-intermed + Chlorine-post.
 }
 \examples{
-tot_chlorineDose(labdat = labdat)
+#tot_chlorineDose(labdat = labdat)
 
 }

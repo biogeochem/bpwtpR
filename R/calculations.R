@@ -68,7 +68,11 @@ apply_calculations <- function(labdat){
                   DOCremoval_filt, DOCremoval_coag,
                   DOCremoval_GACfilt, odourremoval_filt,
                   odourremoval_coag) %>%
-    mutate_if(is.character, as.factor)
+    mutate_if(is.character, as.factor) %>%
+    mutate(result_org = NA, result_flag = NA,
+           year = year(datetime_ymd.hms)) %>%
+    select(datasheet, sheet_year, station:datetime_ymd.hms, year,
+           parameter:result, result_org, result_flag)
 
   return(df)
 }
@@ -79,8 +83,8 @@ apply_calculations <- function(labdat){
 #' @param labdat data
 #'
 #' @importFrom magrittr %>%
-#' @importFrom dplyr filter select mutate gather
-#' @importFrom tidyr pivot_wider
+#' @importFrom dplyr filter select mutate
+#' @importFrom tidyr pivot_wider gather
 #'
 #' @return calculated suva values
 #' @export
@@ -111,7 +115,8 @@ suva <- function(labdat){
 #' @param labdat routine lab data
 #'
 #' @importFrom magrittr %>%
-#' @importFrom dplyr filter select spread mutate gather
+#' @importFrom dplyr filter select mutate
+#' @importFrom tidyr spread gather
 #'
 #' @return calculated lsi values
 #' @export
@@ -123,7 +128,7 @@ langelier_SatIndex <- function(labdat){
 
   df <- labdat %>%
     filter(parameter %in% parms) %>%
-    select(-c(parm_unit, unit,  parm_tag)) %>%
+    select(-c(parm_unit, unit,  parm_tag, result_org, result_flag)) %>%
     spread(parameter, result) %>%
     mutate(LSI1_A = 2.24961 - (0.017853 * Temperature) +
              (0.00008238 * Temperature^2) - (0.00000041 * Temperature^3),
@@ -169,7 +174,8 @@ langelier_SatIndex <- function(labdat){
 #'
 #' @importFrom utils read.csv
 #' @importFrom magrittr %>%
-#' @importFrom dplyr filter select mutate spread
+#' @importFrom dplyr filter select mutate
+#' @importFrom tidyr spread
 #'
 #' @return Dataframe containing datasheet (RawWater, ClearWell), station (Raw,
 #'         Clearwell), datetimes, parameter (DO_percent), and result (DO
@@ -221,7 +227,8 @@ DO_percent <- function(labdat, datadir = "data/data_tables", O2table_file = "O2T
 #' @param labdat Weekly routine sampling data.
 #'
 #' @importFrom magrittr %>%
-#' @importFrom dplyr filter select mutate group_by gather
+#' @importFrom dplyr filter select mutate group_by
+#' @importFrom tidyr gather
 #'
 #' @return Dataframe containing datasheet (RawWater, ClearWell), station (Raw,
 #'         Clearwell), datetimes, parameter (calc.TDS_mg.L), and result (raw
@@ -238,7 +245,7 @@ calc_TDS <- function(labdat) {
 
   df <-labdat %>%
     filter(parameter %in% parms) %>%
-    select(-c(parm_unit, unit,  parm_tag)) %>%
+    select(-c(parm_unit, unit,  parm_tag, result_org, result_flag)) %>%
     mutate(result = gsub(x = result, pattern = "<", replacement = "-1"),
            result = as.numeric(result)) %>%
     filter(result >= 0) %>%
@@ -264,7 +271,8 @@ calc_TDS <- function(labdat) {
 #' @param labdat routine labdat
 #'
 #' @importFrom magrittr %>%
-#' @importFrom dplyr filter select spread group_by mutate gather
+#' @importFrom dplyr filter select group_by mutate
+#' @importFrom tidyr spread gather
 #'
 #' @return summed blue greens and greens
 #' @export
@@ -276,7 +284,7 @@ tot_B_BG_algae <- function(labdat) {
 
   df <- labdat %>%
     filter(parameter %in% parms) %>%
-    select(-c(parm_unit, unit,  parm_tag)) %>%
+    select(-c(parm_unit, unit,  parm_tag, result_org, result_flag)) %>%
     spread(parameter, result) %>%
     group_by(datetime_ymd.hms) %>%
     mutate(tot_B_BG_algae = `Blue Green Algae` + `Green Algae`) %>%
@@ -299,7 +307,8 @@ tot_B_BG_algae <- function(labdat) {
 #' @param labdat Weekly routine sampling data.
 #'
 #' @importFrom magrittr %>%
-#' @importFrom dplyr filter select mutate spread group_by
+#' @importFrom dplyr filter select mutate group_by
+#' @importFrom tidyr spread
 #'
 #' @return Dataframe containing datasheet (RawWater), station (Raw), datetimes,
 #'         parameter (tot.chlorineDose_mg.L), and result (Total Chlorine dose).
@@ -314,7 +323,7 @@ tot_chlorineDose <- function(labdat) {
 
   df <- labdat %>%
     filter(parameter %in% parms) %>%
-    select(-c(parm_unit, unit,  parm_tag)) %>%
+    select(-c(parm_unit, unit,  parm_tag, result_org, result_flag)) %>%
     mutate(result = as.numeric(result)) %>%
     spread(parameter, result) %>%
     mutate(
@@ -339,7 +348,8 @@ tot_chlorineDose <- function(labdat) {
 #' @param labdat routine labdat
 #'
 #' @importFrom magrittr %>%
-#' @importFrom dplyr filter select spread mutate gather
+#' @importFrom dplyr filter select mutate
+#' @importFrom tidyr spread gather
 #'
 #' @return calculated ion balance
 #' @export
@@ -351,18 +361,23 @@ ion_balance <- function(labdat){
   parms <- c("Calcium","Magnesium", "Sodium", "Potassium","Sulphate",
              "Chloride", "Bicarbonate", "Carbonate", "Silica (SiO3)")
 
-  df <- labdat %>%
+  df <- labdat_corrected %>%
     filter(parameter %in% parms) %>%
-    select(-c(parm_unit, unit, parm_tag)) %>%
+    select(-c(parm_unit, unit, parm_tag, result_org, result_flag)) %>%
     spread(parameter, result) %>%
-    mutate(ion_balance = (Calcium * 0.0499) + (Magnesium * 0.0822) +
-             (Sodium * 0.0435) + (Potassium * 0.0256),
-           ion_balance_Si = (Calcium * 0.0499) + (Magnesium * 0.0822) +
-             (Sodium * 0.0435) + (Potassium * 0.0256) + (`Silica (SiO3)` * 0.02629)) %>%
-    select(datasheet:datetime_ymd.hms, ion_balance, ion_balance_Si) %>%
-    gather(parameter, result, ion_balance:ion_balance_Si) %>%
+    mutate(anion_sum = (Sulphate * 0.0208) + (Chloride * 0.0282) +
+             (Bicarbonate * 0.0164) + (Carbonate * 0.0333),
+           cation_sum = (Calcium * 0.0499) + (Magnesium * 0.0822) +
+             (Sodium * 0.0435) + (Potassium * 0.0256) + (`Silica (SiO3)` * 0.02629),
+           ion_percdiff = ((cation_sum - anion_sum)/(cation_sum + anion_sum)) * 100) %>%
+    select(datasheet:datetime_ymd.hms, anion_sum, cation_sum, ion_percdiff) %>%
+    gather(parm_unit, result, anion_sum:ion_percdiff) %>%
     mutate(datasheet = "NA",
-           unit ="percent", parm_unit = "NA",
+           unit = ifelse(parm_unit == "anion_sum" | parm_unit == "cation_sum", "meq/L", "%"),
+           parameter = ifelse(parm_unit == "anion_sum", "Anion Sum",
+                              ifelse(parm_unit == "cation_sum", "Cation Sum",
+                                     ifelse(parm_unit == "ion_percdiff", "Ion % Difference",
+                                            NA))),
            parm_eval = "calculated", parm_tag = "operations") %>%
     select(datasheet, station, datetime_ymd.hms, parameter, unit:parm_tag, result)
 
@@ -376,7 +391,8 @@ ion_balance <- function(labdat){
 #' @param labdat routine lab dat file
 #'
 #' @importFrom magrittr %>%
-#' @importFrom dplyr fitler select mutate spread group_by
+#' @importFrom dplyr filter select mutate group_by
+#' @importFrom tidyr spread
 #'
 #' @return calculated alum:DOC ratio
 #' @export
@@ -389,7 +405,7 @@ alumDOC_ratio <- function(labdat) {
   df <- labdat %>%
     filter(station == "Raw",
            parameter %in% parms) %>%
-    select(-c(parm_unit, unit,  parm_tag)) %>%
+    select(-c(parm_unit, unit,  parm_tag, result_org, result_flag)) %>%
     mutate(result = as.numeric(result)) %>%
     spread(parameter, result) %>%
     group_by(datetime_ymd.hms) %>%
@@ -410,7 +426,8 @@ alumDOC_ratio <- function(labdat) {
 #' @param labdat routine lab dat file
 #'
 #' @importFrom magrittr %>%
-#' @importFrom dplyr fitler select mutate spread group_by
+#' @importFrom dplyr filter select mutate group_by
+#' @importFrom tidyr spread
 #'
 #' @return calculated alum:DOC stoichiometry
 #' @export
@@ -423,7 +440,7 @@ alumDOC_stoich <- function(labdat) {
   df <- labdat %>%
     filter(station == "Raw",
            parameter %in% parms) %>%
-    select(-c(parm_unit, unit,  parm_tag)) %>%
+    select(-c(parm_unit, unit,  parm_tag, result_org, result_flag)) %>%
     mutate(result = as.numeric(result)) %>%
     spread(parameter, result) %>%
     group_by(datetime_ymd.hms) %>%
@@ -444,7 +461,9 @@ alumDOC_stoich <- function(labdat) {
 #' @param labdat routine labdat file
 #'
 #' @importFrom magrittr %>%
-#' @importFrom dplyr filter mutate select spread group_by
+#' @importFrom dplyr filter mutate select group_by
+#' @importFrom tidyr spread
+#'
 #' @return calculated turbidity log removal
 #' @export
 #'
