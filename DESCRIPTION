@@ -1,13 +1,30 @@
 Package: bpwtpR
-Title: What the Package Does (One Line, Title Case)
+Title: Buffalo Pound Water Treatment Plant (BPWTP) data integration and reporting
 Version: 0.0.0.9000
-Authors@R: 
-    person(given = "First",
-           family = "Last",
+Authors@R: c(
+    person(given = "Megan L.",
+           family = "Larsen",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+           email = "mlarsen@wlu.ca",
+           comment = c(ORCID = "0000-0002-4155-1293")),
+    person(given = "Anthony A. P.",
+           family = "Baron",
+           role = c("aut"),
+           email = "anthony.baron@usask.ca"),
+    person(given = "Blair",
+           family = "Kardash",
+           role = c("aut"),
+           email = ""),
+    person(given = "Helen M.",
+           family = "Baulch",
+           role = c("aut"),
+           email = "helen.baulch@usask.ca"),
+    person(given = "Jason J.",
+           family = "Venkiteswaran",
+           role = c("aut"),
+           email = "jvenkiteswaran@wlu.ca",
+           comment = c(ORCID = "0000-0002-6574-7071")))
+Description: BPWTP_labdat scrapes historical data, continuously updates the database with new information, and builds reports.
 License: `use_mit_license()`, `use_gpl3_license()` or friends to
     pick a license
 Encoding: UTF-8
