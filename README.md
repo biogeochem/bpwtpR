@@ -1,4 +1,4 @@
-# bpwtpr: Buffalo Pound Water Treatment Plant (BPWTP) data integration & reporting
+# bpwtpR: Buffalo Pound Water Treatment Plant (BPWTP) data integration & reporting
 
 ## Summary
 
