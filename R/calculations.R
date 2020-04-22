@@ -1,25 +1,11 @@
-### TO BE COMPLETED ###
-# add documentation
-# clean up code
-
-
-### FUNCTIONS TO BE ADDED ###
-#total_thm
-
-# this function will need to be used for building the database and scraping later data
-convert_biocounts <- function(labdat){
-  parm_list <- c("Blue Green Algae (x10^-3)", "Crustaceans (x10^-3)",
-                 "Flagellates (x10^-3)","Green Algae (x10^-3)",
-                 "Nematodes (x10^-3)", "Other (x10^-3)",
-                 "Rotifers (x10^-3)")
-
-  df <- labdat %>%
-    mutate(result = ifelse(parameter %in% parm_list & result > 0, result * 1000, result),
-           parameter = ifelse(parameter %in% parm_list, gsub(" \\(x10\\^-3\\)", "", parameter), as.character(parameter)))
-
-  return(df)
-}
-
+#' TSummarize trihalomethanes for figure
+#'
+#' @param labdat
+#'
+#' @return
+#' @export
+#'
+#' @examples
 summarize_THM <- function(labdat) {
   thm.parms <- c("chloroform_ug.L",
                  "bromodichloromethane_ug.L",
@@ -39,8 +25,18 @@ summarize_THM <- function(labdat) {
 }
 
 
+## -- ##
 
-## Bring all the weekly calculations together
+#' Apply weekly calculations
+#'
+#' @param labdat routine lab dat file
+#'
+#' @importFrom dplyr bind_rows mutate_if
+#'
+#' @return calculated values
+#' @export
+#'
+#' @examples
 apply_calculations <- function(labdat){
 
   suva_values <- suva(labdat = labdat)
@@ -51,43 +47,45 @@ apply_calculations <- function(labdat){
   tot_chlorineDose_values <- tot_chlorineDose(labdat = labdat)
   #calc_partAl_values <- calc_partAl(labdat = labdat)
   #CW_PreGAC_TAl_values <- CW_PreGAC_TAl(labdat = labdat)
-  a_ion_balance <- ion_balance(labdat = labdat)
-  b_alumDOC_ratio <- alumDOC_ratio(labdat = labdat)
-  c_alumDOC_stoich <- alumDOC_stoich(labdat = labdat)
-  d_turbidity_logRemoval <- turbidity_logRemoval(labdat = labdat)
-  e_TOCremoval_coag <- TOCremoval_coag(labdat = labdat)
+  ion_balance <- ion_balance(labdat = labdat)
+  alumDOC_ratio <- alumDOC_ratio(labdat = labdat)
+  alumDOC_stoich <- alumDOC_stoich(labdat = labdat)
+  turbidity_logRemoval <- turbidity_logRemoval(labdat = labdat)
+  TOCremoval_coag <- TOCremoval_coag(labdat = labdat)
   #TOCremoval_filt <- TOCremoval_filt(labdat = labdat)
-  f_DOCremoval_coag <- DOCremoval_coag(labdat = labdat)
-  g_DOCremoval_filt <- DOCremoval_filt(labdat = labdat)
-  h_DOCremoval_GACfilt <- DOCremoval_GACfilt(labdat = labdat)
-  i_odourremoval_filt <- odourremoval_filt(labdat = labdat)
-  j_odourremoval_coag <- odourremoval_coag(labdat = labdat)
+  DOCremoval_coag <- DOCremoval_coag(labdat = labdat)
+  DOCremoval_filt <- DOCremoval_filt(labdat = labdat)
+  DOCremoval_GACfilt <- DOCremoval_GACfilt(labdat = labdat)
+  odourremoval_filt <- odourremoval_filt(labdat = labdat)
+  odourremoval_coag <- odourremoval_coag(labdat = labdat)
 
-  #df <- bind_rows(suva_values, ion_balance_values, LSI_values, DO_percent_values,
-  #                calc_TDS_values, tot_B_BG_algae_values, alumDOC_ratio_values,
-  #                alumDOC_stoich_values, tot_chlorineDose_values,
-  #                odourRemoval_coagFilt_values, odourRemoval_overall_values,
-  #                turbidity_logRemoval_values, calc_partAl_values,
-  #                CW_PreGAC_TAl_values, TOCremoval_coagFilt_values,
-  #                DOCremoval_coagFilt_values, DOCremoval_GACfilt_values,
-  #               DOCremoval_tot_values)
   df <- bind_rows(suva_values, LSI_values, DO_percent_values,
                   calc_TDS_values, tot_B_BG_algae_values,
                   tot_chlorineDose_values,
-                  a_ion_balance, b_alumDOC_ratio, c_alumDOC_stoich,
-                  d_turbidity_logRemoval,
-                  e_TOCremoval_coag, #TOCremoval_filt,
-                  g_DOCremoval_filt, f_DOCremoval_coag,
-                  h_DOCremoval_GACfilt, i_odourremoval_filt,
-                  j_odourremoval_coag) %>%
+                  ion_balance, alumDOC_ratio, alumDOC_stoich,
+                  turbidity_logRemoval,
+                  TOCremoval_coag, #TOCremoval_filt,
+                  DOCremoval_filt, DOCremoval_coag,
+                  DOCremoval_GACfilt, odourremoval_filt,
+                  odourremoval_coag) %>%
     mutate_if(is.character, as.factor)
 
   return(df)
 }
 
 
-
-
+#' Calculate SUVA
+#'
+#' @param labdat data
+#'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr filter select mutate gather
+#' @importFrom tidyr pivot_wider
+#'
+#' @return calculated suva values
+#' @export
+#'
+#' @examples
 suva <- function(labdat){
   parms <- c("UV254_abs.10cm", "DOC.GFdiss_mg.L.C")
 
@@ -108,11 +106,22 @@ suva <- function(labdat){
 }
 
 
+#' Calculate langelier saturation indeces
+#'
+#' @param labdat routine lab data
+#'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr filter select spread mutate gather
+#'
+#' @return calculated lsi values
+#' @export
+#'
+#' @examples
 langelier_SatIndex <- function(labdat){
 
   parms <- c("TDS", "Temperature", "pH", "Alkalinity (total)", "Calcium")
 
-  df <- labdat_corrected %>%
+  df <- labdat %>%
     filter(parameter %in% parms) %>%
     select(-c(parm_unit, unit,  parm_tag)) %>%
     spread(parameter, result) %>%
@@ -143,7 +152,6 @@ langelier_SatIndex <- function(labdat){
 
 }
 
-##### Bench Diss. Oxygen (mg/L) == >16 on Apr 14, 2014 - coerced to NA
 
 #' Bench Dissolved Oxygen (%) (Percent Saturation DO) Calculation (Raw Water & Clearwell)
 #'
@@ -158,6 +166,10 @@ langelier_SatIndex <- function(labdat){
 #'
 #' @param labdat Weekly routine sampling data.
 #' @param O2table_file Table of oxygen solubilities in water.
+#'
+#' @importFrom utils read.csv
+#' @importFrom magrittr %>%
+#' @importFrom dplyr filter select mutate spread
 #'
 #' @return Dataframe containing datasheet (RawWater, ClearWell), station (Raw,
 #'         Clearwell), datetimes, parameter (DO_percent), and result (DO
@@ -208,6 +220,9 @@ DO_percent <- function(labdat, datadir = "data/data_tables", O2table_file = "O2T
 #'
 #' @param labdat Weekly routine sampling data.
 #'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr filter select mutate group_by gather
+#'
 #' @return Dataframe containing datasheet (RawWater, ClearWell), station (Raw,
 #'         Clearwell), datetimes, parameter (calc.TDS_mg.L), and result (raw
 #'         water and clearwell TDS concentration in mg/L).
@@ -244,6 +259,17 @@ calc_TDS <- function(labdat) {
 }
 
 
+#' Sum total blue green algae and green algae
+#'
+#' @param labdat routine labdat
+#'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr filter select spread group_by mutate gather
+#'
+#' @return summed blue greens and greens
+#' @export
+#'
+#' @examples
 tot_B_BG_algae <- function(labdat) {
 
   parms <- c("Blue Green Algae", "Green Algae")
@@ -272,10 +298,13 @@ tot_B_BG_algae <- function(labdat) {
 #'
 #' @param labdat Weekly routine sampling data.
 #'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr filter select mutate spread group_by
+#'
 #' @return Dataframe containing datasheet (RawWater), station (Raw), datetimes,
 #'         parameter (tot.chlorineDose_mg.L), and result (Total Chlorine dose).
 #'
-#' @examples tot_chlorineDose(labdat = labdat)
+#' @examples #tot_chlorineDose(labdat = labdat)
 #'
 #' @export
 #'
@@ -305,9 +334,18 @@ tot_chlorineDose <- function(labdat) {
 }
 
 
-## Functions for calculating operational metrics
-
-ion_balance <- function(labdat, silica = ""){
+#' Calculate ion balance
+#'
+#' @param labdat routine labdat
+#'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr filter select spread mutate gather
+#'
+#' @return calculated ion balance
+#' @export
+#'
+#' @examples
+ion_balance <- function(labdat){
 
 
   parms <- c("Calcium","Magnesium", "Sodium", "Potassium","Sulphate",
@@ -333,7 +371,17 @@ ion_balance <- function(labdat, silica = ""){
 
 }
 
-
+#' Calculate Alum to DOC ratio
+#'
+#' @param labdat routine lab dat file
+#'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr fitler select mutate spread group_by
+#'
+#' @return calculated alum:DOC ratio
+#' @export
+#'
+#' @examples
 alumDOC_ratio <- function(labdat) {
 
   parms <- c("Alum", "DOC")
@@ -357,6 +405,17 @@ alumDOC_ratio <- function(labdat) {
 }
 
 
+#' Calculate Alum to DOC stoichiometry
+#'
+#' @param labdat routine lab dat file
+#'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr fitler select mutate spread group_by
+#'
+#' @return calculated alum:DOC stoichiometry
+#' @export
+#'
+#' @examples
 alumDOC_stoich <- function(labdat) {
 
   parms <- c("Alum", "DOC")
@@ -380,6 +439,16 @@ alumDOC_stoich <- function(labdat) {
 }
 
 
+#' Calculate turbidity log removal
+#'
+#' @param labdat routine labdat file
+#'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr filter mutate select spread group_by
+#' @return calculated turbidity log removal
+#' @export
+#'
+#' @examples
 turbidity_logRemoval <- function(labdat) {
 
   df <- labdat %>%
@@ -401,35 +470,24 @@ turbidity_logRemoval <- function(labdat) {
 }
 
 
-#TOCremoval_filt <- function(labdat){
-
-#stationlist = c("Clearwell", "PreGAC")
-
-#doc_removal <- labdat %>%
-#   filter(parameter == "TOC",
-#          station %in% stationlist) %>%
-#   select(station, datetime_ymd.hms, result) %>%
-#   pivot_wider(id_cols = datetime_ymd.hms,
-#               names_from = station,
-#               values_from = result) %>%
-#   filter(!is.na(Clearwell)) %>%
-#   mutate(result = percent_yield(pre = PreGAC, post = Clearwell),
-#          datasheet = "NA", station = "NA",
-#          parameter = "TOC Removal - Filtration",
-#          unit ="percent", parm_unit = "NA",
-#          parm_eval = "calculated", parm_tag = "operations") %>%
-#   select(datasheet, station, datetime_ymd.hms, parameter:parm_tag, result)
-#
-# return(doc_removal)
-#
-# }
-
-
+#' Calculate TOC removal by coagulation
+#'
+#' @param labdat routine labdat dataset
+#'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr filter mutate select
+#' @importFrom tidyr pivot_wider
+#'
+#' @return calculated odour removal by coagulation
+#' @export
+#'
+#' @examples
+#'  #DOCremoval_GACfilt(labdat)
 TOCremoval_coag <- function(labdat){
 
   stationlist = c("Clearwell", "Raw")
 
-  doc_removal <- labdat %>%
+  toc_removal <- labdat %>%
     filter(parameter == "TOC",
            station %in% stationlist) %>%
     select(station, datetime_ymd.hms, result) %>%
@@ -444,11 +502,24 @@ TOCremoval_coag <- function(labdat){
            parm_eval = "calculated", parm_tag = "operations") %>%
     select(datasheet, station, datetime_ymd.hms, parameter:parm_tag, result)
 
-  return(doc_removal)
+  return(toc_removal)
 
 }
 
 
+#' Calculate DOC removal by filtration
+#'
+#' @param labdat routine labdat dataset
+#'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr filter mutate select
+#' @importFrom tidyr pivot_wider
+#'
+#' @return calculated odour removal by coagulation
+#' @export
+#'
+#' @examples
+#'  #DOCremoval_GACfilt(labdat)
 DOCremoval_filt <- function(labdat){
 
   stationlist = c("Clearwell", "PreGAC")
@@ -473,6 +544,19 @@ DOCremoval_filt <- function(labdat){
 }
 
 
+#' Calculate DOC removal by coagulation
+#'
+#' @param labdat routine labdat dataset
+#'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr filter mutate select
+#' @importFrom tidyr pivot_wider
+#'
+#' @return calculated odour removal by coagulation
+#' @export
+#'
+#' @examples
+#'  #DOCremoval_GACfilt(labdat)
 DOCremoval_coag <- function(labdat){
 
   stationlist = c("Clearwell", "Raw")
@@ -497,6 +581,19 @@ DOCremoval_coag <- function(labdat){
 }
 
 
+#' Calculate DOC removal my GAC
+#'
+#' @param labdat routine labdat dataset
+#'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr filter mutate select
+#' @importFrom tidyr pivot_wider
+#'
+#' @return calculated odour removal by coagulation
+#' @export
+#'
+#' @examples
+#'  #DOCremoval_GACfilt(labdat)
 DOCremoval_GACfilt <- function(labdat){
 
   stationlist = c("Clearwell", "PreGAC")
@@ -521,6 +618,19 @@ DOCremoval_GACfilt <- function(labdat){
 }
 
 
+#' Calculate odour removal during filtration
+#'
+#' @param labdat routine labdat dataset
+#'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr filter mutate select
+#' @importFrom tidyr pivot_wider
+#'
+#' @return calculated odour removal by filtration
+#' @export
+#'
+#' @examples
+#'  #odourremoval_filt(labdat)
 odourremoval_filt <- function(labdat){
 
   stationlist = c("Clearwell", "PreGAC")
@@ -545,6 +655,19 @@ odourremoval_filt <- function(labdat){
 }
 
 
+#' Calculate odour removal during coagulation
+#'
+#' @param labdat routine labdat dataset
+#'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr filter mutate select
+#' @importFrom tidyr pivot_wider
+#'
+#' @return calculated odour removal by coagulation
+#' @export
+#'
+#' @examples
+#'  #odourremoval_coag(labdat)
 odourremoval_coag <- function(labdat){
 
   stationlist = c("Clearwell", "Raw")
