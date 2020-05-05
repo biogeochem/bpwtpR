@@ -29,13 +29,18 @@ summarize_monthly_table <- function(df = "", grouping = "",
     select(month, parameter, unit, `Monthly Mean`) %>%
     spread(month, `Monthly Mean`)
 
+
+  table.values[,c(3:ncol(table.values))] <- signif(table.values[,c(3:ncol(table.values))], digits = 2)
+  table.values <- as.matrix(table.values)
+  table.values[is.na(table.values)] <- "--"
+
   caption.text = paste(year_select, "monthly summary table at the ",
                        sampling_station, "location.")
   pander(table.values, justify = c("left", rep("center",
                                                ncol(table.values)-1)),
          style = "rmarkdown",
          split.table = Inf, use.hyphenation = T,
-         caption = caption.text, graph.fontsize = 9, digits = 2)
+         caption = caption.text, graph.fontsize = 9)
 }
 
 
@@ -73,31 +78,42 @@ group_table_historical <- function(df = "", year_select = "", grouping = "",
   hist_bas <- historical_basics(df = df, grouping = grouping,
                                 sampling_station = sampling_station, by_month = by_month)
 
+
   if(by_month == T) {
     hist.values <- left_join(hist_bas, hist_ext) %>%
-      left_join(hist_per) %>%
-      filter(month == month_select)
+      left_join(hist_per)
+    hist.values$month <- factor(hist.values$month, ordered = T, levels = month.abb)
+    hist.values <- hist.values[hist.values$month == month_select,]
     table.values <- left_join(month_values, hist.values)
     table.values <- as.data.frame(table.values)
+    table.values[,c(7:ncol(table.values))] <- signif(table.values[,c(7:ncol(table.values))], digits = 2)
+    table.values <- as.matrix(table.values)
+    table.values[is.na(table.values)] <- "--"
 
     caption.text = paste(sampling_station, grouping, "characterics for",
-                         month_select, "historical data.")
+                         month_select, year_select, "with collated", month_select,
+                         "historical data from", min(df$year), "-", max(df$year), ".")
 
-    pander(table.values[,5:ncol(table.values)],
-           justify = c("left", rep("center",ncol(table.values)-5)),
+    pander(table.values[, c(6, 2, 7:ncol(table.values))],
+           justify = c("left", "center", rep("right", ncol(table.values) - 6)),
            style = "rmarkdown", split.table = Inf,
-           caption = caption.text, graph.fontsize = 9, digits = 2)
+           caption = caption.text, graph.fontsize = 9)
 
   } else {
 
     table.values <- left_join(hist_bas, hist_ext) %>% left_join(hist_per)
-    caption.text = paste("Complete historical summary for the",
-                         sampling_station, grouping, "characteristics.")
+
+    table.values[,c(5:ncol(table.values))] <- signif(table.values[,c(5:ncol(table.values))], digits = 2)
+    table.values <- as.matrix(table.values)
+    table.values[is.na(table.values)] <- "--"
+
+    caption.text = paste0("Overall historical summary (", min(df$year), "-", max(df$year),
+                         ") for ", sampling_station, " ", grouping, " water quality characteristics.")
 
     pander(table.values[,2:ncol(table.values)],
-           justify = c("left", rep("centre",ncol(table.values)-2)),
+           justify = c("left", "center", rep("right",ncol(table.values) - 3)),
            style = "rmarkdown", split.table = Inf,
-           caption = caption.text, graph.fontsize = 9, digits = 2)
+           caption = caption.text, graph.fontsize = 9)
 
   }
 

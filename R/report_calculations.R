@@ -33,14 +33,14 @@ historical_extremes <- function(df = "", sampling_station = "",
   if(by_month == T){
     df %>%
       filter(parm_tag == grouping & station == sampling_station) %>%
-      group_by(station, parameter, month) %>%
+      group_by(station, parameter, unit, month) %>%
       summarize("Min" = min(result, na.rm = TRUE), "Max" = max(result, na.rm = TRUE))
 
   } else {
 
     df %>%
       filter(parm_tag == grouping & station == sampling_station) %>%
-      group_by(station, parameter) %>%
+      group_by(station, parameter, unit) %>%
       summarize("Min" = min(result, na.rm = TRUE), "Max" = max(result, na.rm = TRUE))
   }
 
@@ -70,14 +70,14 @@ historical_percentiles <- function(df = "", percentiles = c(0.1, .25, .50, .75, 
   if(by_month == T){
     df %>%
       filter(parm_tag == grouping & station == sampling_station) %>%
-      group_by(station, parameter, month) %>%
+      group_by(station, parameter, unit, month) %>%
       summarize_at(vars(result), funs(!!!p_funs))
 
   } else {
 
     df %>%
       filter(parm_tag == grouping & station == sampling_station) %>%
-      group_by(station, parameter) %>%
+      group_by(station, parameter, unit) %>%
       summarize_at(vars(result), funs(!!!p_funs))
   }
 
@@ -103,14 +103,14 @@ historical_basics <- function(df = "", sampling_station = "", grouping = "", by_
 
     df %>%
       filter(parm_tag == grouping & station == sampling_station) %>%
-      group_by(station, parameter, month) %>%
+      group_by(station, parameter, unit, month) %>%
       summarize(N = n(), Mean = mean(result, na.rm = T),
                 SD = sd(result, na.rm = T), CV = (SD/N)*100)
   } else{
 
     df %>%
       filter(parm_tag == grouping & station == sampling_station) %>%
-      group_by(station, parameter) %>%
+      group_by(station, parameter, unit) %>%
       summarize(N = n(), Mean = mean(result, na.rm = T),
                 SD = sd(result, na.rm = T), CV = (SD/N)*100)
   }
