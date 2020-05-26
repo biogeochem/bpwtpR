@@ -103,7 +103,7 @@ suva <- function(labdat){
     select(datasheet:datetime_ymd.hms, suva) %>%
     gather(parm_unit, result, suva) %>%
     mutate(parameter = "SUVA", parm_eval = "calculated",
-           parm_tag = "physical", unit = "") %>%
+           parm_tag = "traceConstituents", unit = "") %>%
     select(datasheet: datetime_ymd.hms, parameter, unit, parm_unit, parm_eval, parm_tag, result) %>%
     filter(result != "Inf")
   return(suva)
@@ -709,3 +709,4 @@ odourremoval_coag <- function(labdat){
   return(odour_removal)
 
 }
+

@@ -30,7 +30,7 @@ summarize_monthly_table <- function(df = "", grouping = "",
     spread(month, `Monthly Mean`)
 
 
-  table.values[,c(3:ncol(table.values))] <- signif(table.values[,c(3:ncol(table.values))], digits = 2)
+  table.values[,c(3:ncol(table.values))] <- signif(table.values[,c(3:ncol(table.values))], digits = 3)
   table.values <- as.matrix(table.values)
   table.values[is.na(table.values)] <- "--"
 
