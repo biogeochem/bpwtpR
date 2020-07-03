@@ -2,8 +2,8 @@
 #'
 #' @param df data for table
 #' @param grouping data grouping
-#' @param sampling_station
-#' @param year_select
+#' @param sampling_station sampling location
+#' @param year_select year of interest
 #'
 #' @importFrom pander pander
 #'
@@ -30,7 +30,8 @@ summarize_monthly_table <- function(df = "", grouping = "",
     spread(month, `Monthly Mean`)
 
 
-  table.values[,c(3:ncol(table.values))] <- signif(table.values[,c(3:ncol(table.values))], digits = 3)
+  table.values[,c(3:ncol(table.values))] <-
+    signif(table.values[ , c(3:ncol(table.values))], digits = 3)
   table.values <- as.matrix(table.values)
   table.values[is.na(table.values)] <- "--"
 
@@ -46,18 +47,16 @@ summarize_monthly_table <- function(df = "", grouping = "",
 
 #' Build table with historical values
 #'
-#' @param df
-#' @param year_select
-#' @param grouping
-#' @param sampling_station
-#' @param percentiles
-#' @param by_month
-#' @param month_select
+#' @param df dataframe
+#' @param year_select year of interest
+#' @param grouping operational grouping
+#' @param sampling_station sampling location
+#' @param percentiles percentiles of interest
+#' @param by_month group by month (T) or by year (F)
+#' @param month_select month of interest
 #'
 #' @return
 #' @export
-#'
-#' @examples
 group_table_historical <- function(df = "", year_select = "", grouping = "",
                                    sampling_station = "", percentiles = "",
                                    by_month = T, month_select = NULL){
@@ -71,12 +70,15 @@ group_table_historical <- function(df = "", year_select = "", grouping = "",
     filter(month == month_select, year == year_select)
 
   hist_ext <- historical_extremes(df = df, grouping = grouping,
-                                  sampling_station = sampling_station, by_month = by_month)
+                                  sampling_station = sampling_station,
+                                  by_month = by_month)
   hist_per <- historical_percentiles(df = df, grouping = grouping,
                                      sampling_station = sampling_station,
-                                     percentiles = percentiles, by_month = by_month)
+                                     percentiles = percentiles,
+                                     by_month = by_month)
   hist_bas <- historical_basics(df = df, grouping = grouping,
-                                sampling_station = sampling_station, by_month = by_month)
+                                sampling_station = sampling_station,
+                                by_month = by_month)
 
 
   if(by_month == T) {
@@ -86,13 +88,15 @@ group_table_historical <- function(df = "", year_select = "", grouping = "",
     hist.values <- hist.values[hist.values$month == month_select,]
     table.values <- left_join(month_values, hist.values)
     table.values <- as.data.frame(table.values)
-    table.values[,c(7:ncol(table.values))] <- signif(table.values[,c(7:ncol(table.values))], digits = 2)
+    table.values[,c(7:ncol(table.values))] <-
+      signif(table.values[,c(7:ncol(table.values))], digits = 2)
     table.values <- as.matrix(table.values)
     table.values[is.na(table.values)] <- "--"
 
     caption.text = paste(sampling_station, grouping, "characterics for",
                          month_select, year_select, "with collated", month_select,
-                         "historical data from", min(df$year), "-", max(df$year), ".")
+                         "historical data from", min(df$year), "-",
+                         max(df$year), ".")
 
     pander(table.values[, c(6, 2, 7:ncol(table.values))],
            justify = c("left", "center", rep("right", ncol(table.values) - 6)),
@@ -103,12 +107,14 @@ group_table_historical <- function(df = "", year_select = "", grouping = "",
 
     table.values <- left_join(hist_bas, hist_ext) %>% left_join(hist_per)
 
-    table.values[,c(5:ncol(table.values))] <- signif(table.values[,c(5:ncol(table.values))], digits = 2)
+    table.values[,c(5:ncol(table.values))] <-
+      signif(table.values[,c(5:ncol(table.values))], digits = 2)
     table.values <- as.matrix(table.values)
     table.values[is.na(table.values)] <- "--"
 
-    caption.text = paste0("Overall historical summary (", min(df$year), "-", max(df$year),
-                         ") for ", sampling_station, " ", grouping, " water quality characteristics.")
+    caption.text = paste0("Overall historical summary (", min(df$year), "-",
+                          max(df$year), ") for ", sampling_station, " ",
+                          grouping, " water quality characteristics.")
 
     pander(table.values[,2:ncol(table.values)],
            justify = c("left", "center", rep("right",ncol(table.values) - 3)),

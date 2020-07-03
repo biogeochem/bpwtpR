@@ -4,8 +4,6 @@
 #'
 #' @return
 #' @export
-#'
-#' @examples
 summarize_THM <- function(labdat) {
   thm.parms <- c("chloroform_ug.L",
                  "bromodichloromethane_ug.L",
@@ -35,8 +33,6 @@ summarize_THM <- function(labdat) {
 #'
 #' @return calculated values
 #' @export
-#'
-#' @examples
 apply_calculations <- function(labdat){
 
   suva_values <- suva(labdat = labdat)
@@ -88,8 +84,6 @@ apply_calculations <- function(labdat){
 #'
 #' @return calculated suva values
 #' @export
-#'
-#' @examples
 suva <- function(labdat){
   parms <- c("UV254_abs.10cm", "DOC.GFdiss_mg.L.C")
 
@@ -120,8 +114,6 @@ suva <- function(labdat){
 #'
 #' @return calculated lsi values
 #' @export
-#'
-#' @examples
 langelier_SatIndex <- function(labdat){
 
   parms <- c("TDS", "Temperature", "pH", "Alkalinity (total)", "Calcium")
@@ -134,8 +126,10 @@ langelier_SatIndex <- function(labdat){
              (0.00008238 * Temperature^2) - (0.00000041 * Temperature^3),
            LSI1_m = 0.000025 * TDS,
            LSI1_B = ifelse(TDS < 500, 9.7 + ((2.5 * LSI1_m^0.5)/
-                                               (1.0 + 5.3 * LSI1_m^0.5 + 5.5 * LSI1_m)), 10),
-           LSI1_ph_calc = LSI1_A + LSI1_B - log10(Calcium/0.4) - log10(`Alkalinity (total)`),
+                                               (1.0 + 5.3 * LSI1_m^0.5 + 5.5 *
+                                                  LSI1_m)), 10),
+           LSI1_ph_calc = LSI1_A + LSI1_B -
+             log10(Calcium/0.4) - log10(`Alkalinity (total)`),
            LSI1 = pH - LSI1_ph_calc) %>%
     mutate(LSI2_A = (log10(TDS) - 1)/10,
            LSI2_B = -13.12 * log10(Temperature + 273)+ 34.55,
@@ -181,11 +175,10 @@ langelier_SatIndex <- function(labdat){
 #'         Clearwell), datetimes, parameter (DO_percent), and result (DO
 #'         concentration expressed as a percentage).
 #'
-#' @examples calc_BenchDO_percent(O2_table = O2_table, labdat = labdat)
-#'
 #' @export
-#'
-DO_percent <- function(labdat, datadir = "data/data_tables", O2table_file = "O2Table.csv") {
+
+DO_percent <- function(labdat, datadir = "data/data_tables",
+                       O2table_file = "O2Table.csv") {
 
   fpath <- file.path(datadir, O2table_file)
 
@@ -207,9 +200,11 @@ DO_percent <- function(labdat, datadir = "data/data_tables", O2table_file = "O2T
     mutate(DO_percent = DO_mg.L / oxy.sol_mg.L * 100) %>%
     select(datasheet:datetime_ymd.hms, DO_percent) %>%
     gather(parm_unit, result, DO_percent) %>%
-    mutate(parameter = "Percent DO", parm_eval = "calculated", parm_tag = "physical",
+    mutate(parameter = "Percent DO", parm_eval = "calculated",
+           parm_tag = "physical",
            unit = "%") %>%
-    select(datasheet: datetime_ymd.hms, parameter, unit, parm_unit, parm_eval, parm_tag, result)
+    select(datasheet: datetime_ymd.hms, parameter, unit,
+           parm_unit, parm_eval, parm_tag, result)
 
   return(as.data.frame(df))
 }
@@ -259,7 +254,8 @@ calc_TDS <- function(labdat) {
     filter(!is.na(result)) %>%
     mutate(parameter = "TDS", parm_eval = "calculated", parm_tag = "physical",
            unit = "mg/L") %>%
-    select(datasheet: datetime_ymd.hms, parameter, unit, parm_unit, parm_eval, parm_tag, result)
+    select(datasheet: datetime_ymd.hms, parameter, unit,
+           parm_unit, parm_eval, parm_tag, result)
 
   return(as.data.frame(df))
 
@@ -276,8 +272,6 @@ calc_TDS <- function(labdat) {
 #'
 #' @return summed blue greens and greens
 #' @export
-#'
-#' @examples
 tot_B_BG_algae <- function(labdat) {
 
   parms <- c("Blue Green Algae", "Green Algae")
@@ -290,9 +284,11 @@ tot_B_BG_algae <- function(labdat) {
     mutate(tot_B_BG_algae = `Blue Green Algae` + `Green Algae`) %>%
     select(datasheet:datetime_ymd.hms, tot_B_BG_algae) %>%
     gather(parameter, result, tot_B_BG_algae) %>%
-    mutate(parameter = "Total BG + A", parm_eval = "calculated", parm_tag = "biological",
+    mutate(parameter = "Total BG + A", parm_eval = "calculated",
+           parm_tag = "biological",
            unit = "mg/L", parm_unit = "cells.L") %>%
-    select(datasheet: datetime_ymd.hms, parameter, unit, parm_unit, parm_eval, parm_tag, result)
+    select(datasheet: datetime_ymd.hms, parameter, unit,
+           parm_unit, parm_eval, parm_tag, result)
 
   return(as.data.frame(df))
 }
@@ -314,9 +310,7 @@ tot_B_BG_algae <- function(labdat) {
 #'         parameter (tot.chlorineDose_mg.L), and result (Total Chlorine dose).
 #'
 #' @examples #tot_chlorineDose(labdat = labdat)
-#'
-#' @export
-#'
+
 tot_chlorineDose <- function(labdat) {
 
   parms <- c("Chlorine-pre", "Chlorine-intermed", "Chlorine-post")
@@ -328,14 +322,17 @@ tot_chlorineDose <- function(labdat) {
     spread(parameter, result) %>%
     mutate(
       `Chlorine-pre` = replace(`Chlorine-pre`, is.na(`Chlorine-pre`), 0),
-      `Chlorine-intermed` = replace(`Chlorine-intermed`, is.na(`Chlorine-intermed`), 0),
+      `Chlorine-intermed` = replace(`Chlorine-intermed`,
+                                    is.na(`Chlorine-intermed`), 0),
       `Chlorine-post` = replace(`Chlorine-post`, is.na(`Chlorine-post`), 0)
     ) %>%
     group_by(datetime_ymd.hms) %>%
-    mutate(tot.chlorineDose_mg.L = `Chlorine-pre` + `Chlorine-intermed` + `Chlorine-post`) %>%
+    mutate(tot.chlorineDose_mg.L = `Chlorine-pre` + `Chlorine-intermed` +
+             `Chlorine-post`) %>%
     select(datasheet:datetime_ymd.hms, tot.chlorineDose_mg.L) %>%
     gather(parm_unit, result, tot.chlorineDose_mg.L) %>%
-    mutate(parameter = "Total Chlorine Dose", parm_eval = "calculated", parm_tag = "operations",
+    mutate(parameter = "Total Chlorine Dose", parm_eval = "calculated",
+           parm_tag = "operations",
            unit = "mg/L") %>%
     select(datasheet: datetime_ymd.hms, parameter, unit, parm_unit, parm_eval, parm_tag, result)
 
@@ -353,8 +350,6 @@ tot_chlorineDose <- function(labdat) {
 #'
 #' @return calculated ion balance
 #' @export
-#'
-#' @examples
 ion_balance <- function(labdat){
 
 
@@ -368,16 +363,19 @@ ion_balance <- function(labdat){
     mutate(anion_sum = (Sulphate * 0.0208) + (Chloride * 0.0282) +
              (Bicarbonate * 0.0164) + (Carbonate * 0.0333),
            cation_sum = (Calcium * 0.0499) + (Magnesium * 0.0822) +
-             (Sodium * 0.0435) + (Potassium * 0.0256) + (`Silica (SiO3)` * 0.02629),
-           ion_percdiff = ((cation_sum - anion_sum)/(cation_sum + anion_sum)) * 100) %>%
+             (Sodium * 0.0435) + (Potassium * 0.0256) +
+             (`Silica (SiO3)` * 0.02629),
+           ion_percdiff = ((cation_sum - anion_sum)/
+                             (cation_sum + anion_sum)) * 100) %>%
     select(datasheet:datetime_ymd.hms, anion_sum, cation_sum, ion_percdiff) %>%
     gather(parm_unit, result, anion_sum:ion_percdiff) %>%
     mutate(datasheet = "NA",
-           unit = ifelse(parm_unit == "anion_sum" | parm_unit == "cation_sum", "meq/L", "%"),
+           unit = ifelse(parm_unit == "anion_sum" |
+                           parm_unit == "cation_sum", "meq/L", "%"),
            parameter = ifelse(parm_unit == "anion_sum", "Anion Sum",
                               ifelse(parm_unit == "cation_sum", "Cation Sum",
-                                     ifelse(parm_unit == "ion_percdiff", "Ion % Difference",
-                                            NA))),
+                                     ifelse(parm_unit == "ion_percdiff",
+                                            "Ion % Difference", NA))),
            parm_eval = "calculated", parm_tag = "operations") %>%
     select(datasheet, station, datetime_ymd.hms, parameter, unit:parm_tag, result)
 
@@ -396,8 +394,6 @@ ion_balance <- function(labdat){
 #'
 #' @return calculated alum:DOC ratio
 #' @export
-#'
-#' @examples
 alumDOC_ratio <- function(labdat) {
 
   parms <- c("Alum", "DOC")
@@ -431,8 +427,6 @@ alumDOC_ratio <- function(labdat) {
 #'
 #' @return calculated alum:DOC stoichiometry
 #' @export
-#'
-#' @examples
 alumDOC_stoich <- function(labdat) {
 
   parms <- c("Alum", "DOC")
@@ -466,14 +460,13 @@ alumDOC_stoich <- function(labdat) {
 #'
 #' @return calculated turbidity log removal
 #' @export
-#'
-#' @examples
 turbidity_logRemoval <- function(labdat) {
 
   df <- labdat %>%
     filter(parameter == "Turbidity") %>%
     mutate(result = as.numeric(result)) %>%
-    mutate(parameter = ifelse(datasheet == "RawWater", "RW_Turbidity", "CW_Turbidity")) %>%
+    mutate(parameter = ifelse(datasheet == "RawWater", "RW_Turbidity",
+                              "CW_Turbidity")) %>%
     select(-c(datasheet, station, parm_unit, unit,  parm_tag)) %>%
     spread(parameter, result) %>%
     group_by(datetime_ymd.hms) %>%

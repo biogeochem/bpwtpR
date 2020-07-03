@@ -61,10 +61,10 @@ plot_all_parameters <- function(df, year_select = "",
 #' @param var parameter variable
 #' @param outdir location to save output
 #'
-#' @importFrom ggplot2 ggplot geom_boxplot geom_point scale_y_continuous labs theme
-#' scale_color_viridis_c ggsave element_text
+#' @importFrom ggplot2 ggplot geom_boxplot geom_point scale_y_continuous labs
+#'   theme scale_color_viridis_c ggsave element_text
 #' @importFrom magrittr %>%
-#' @import dplyr filter mutate
+#' @importFrom dplyr filter mutate
 #'
 #' @return
 #' @export
@@ -113,15 +113,14 @@ parm_fig <- function(df = "", year_select = "", var = "",
 
 #' Plot parameter yearly trend
 #'
-#' @param df
-#' @param year_select
-#' @param var
+#' @param df data frame
+#' @param year_select year of interest
+#' @param var variable of interest
 #'
-#' @importFrom ggplot2 ggplot stat_summary geom_line geom_point facet_grid scale_y_continuous labs theme scale_color_viridis_d
+#' @importFrom ggplot2 ggplot stat_summary geom_line geom_point facet_grid
+#'   scale_y_continuous labs theme scale_color_viridis_d
 #' @return
 #' @export
-#'
-#' @examples
 trend_fig <- function(df = "", year_select = "", var = "") {
   p <- ggplot(data = df %>%
                 filter(year == year_select),
@@ -146,13 +145,11 @@ trend_fig <- function(df = "", year_select = "", var = "") {
 
 #' tTHM figure
 #'
-#' @param df
-#' @param year_select
+#' @param df default is thms
+#' @param year_select year of interest
 #'
 #' @return
 #' @export
-#'
-#' @examples
 tthm_fig <- function(df = "thms", year_select = ""){
 
   df <- df %>%
@@ -173,7 +170,8 @@ tthm_fig <- function(df = "thms", year_select = ""){
          y = expression(Concentration~(mu*g/L)))
 
   trend_plot$data$station <- factor(trend_plot$data$station,
-                                    levels = c("PreFM","Channel","PreGAC","Clearwell"))
+                                    levels = c("PreFM","Channel",
+                                               "PreGAC","Clearwell"))
 
   summary_plot <- ggplot(data = df %>%
                           filter(year == year_select) %>%
@@ -190,7 +188,8 @@ tthm_fig <- function(df = "thms", year_select = ""){
     scale_color_viridis_d(begin = 0.2, end = 0.8, option = "D")
 
   summary_plot$data$station <- factor(summary_plot$data$station,
-                                    levels = c("PreFM","Channel","PreGAC","Clearwell"))
+                                    levels = c("PreFM","Channel",
+                                               "PreGAC","Clearwell"))
 
   full_plot = plot_grid(trend_plot, summary_plot, ncol = 1, axis = "l",
                         align = "hv", rel_heights = c(1,0.5), labels = "auto")

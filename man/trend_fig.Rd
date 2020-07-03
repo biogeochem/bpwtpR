@@ -7,7 +7,11 @@
 trend_fig(df = "", year_select = "", var = "")
 }
 \arguments{
-\item{var}{}
+\item{df}{data frame}
+
+\item{year_select}{year of interest}
+
+\item{var}{variable of interest}
 }
 \value{
 

@@ -30,4 +30,20 @@ License: `use_mit_license()`, `use_gpl3_license()` or friends to
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
+Imports: 
+    dplyr (>= 0.8.5),
+    ggplot2 (>= 3.3.0),
+    cowplot (>= 1.0.0),
+    tidyr (>= 1.0.0),
+    magrittr,
+	DescTools,
+	janitor,
+	pander,
+	readxl,
+	tibble
 RoxygenNote: 7.1.0
+Suggests: 
+    rmarkdown,
+    knitr,
+    testthat (>= 2.1.0)
+VignetteBuilder: knitr

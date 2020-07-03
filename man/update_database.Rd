@@ -13,7 +13,15 @@ update_database(
 )
 }
 \arguments{
-\item{outfilename}{}
+\item{labdat_file}{base data file}
+
+\item{datadir}{data directory}
+
+\item{xlsdir}{labdat xls directory}
+
+\item{outdir}{output directory}
+
+\item{outfilename}{name of output file}
 }
 \value{
 

@@ -21,5 +21,4 @@ Total Chlorine dose = Chlorine-pre + Chlorine-intermed + Chlorine-post.
 }
 \examples{
 #tot_chlorineDose(labdat = labdat)
-
 }

@@ -7,8 +7,6 @@
 #'
 #' @return converted values
 #' @export
-#'
-#' @examples
 convert_biocounts <- function(labdat){
   parm_list <- c("Blue Green Algae (x10^-3)",
                  "Crustaceans (x10^-3)",
@@ -39,8 +37,6 @@ convert_biocounts <- function(labdat){
 #'
 #' @return
 #' @export
-#'
-#' @examples
 replace_dl <- function(labdat){
   labdat <- convert_adl(labdat = labdat)
   labdat <- convert_bdl(labdat = labdat)
@@ -52,13 +48,11 @@ replace_dl <- function(labdat){
 
 #' Replace below detection limit values with
 #'
-#' @param labdat
-#' @param replacement
+#' @param labdat labdat datafile
+#' @param replacement default = 0
 #'
 #' @return
 #' @export
-#'
-#' @examples
 convert_bdl <- function(labdat, replacement = "0"){
   labdat$result[which(grepl(pattern = "[<]", x = labdat$result))] <- replacement
 
@@ -71,13 +65,11 @@ convert_bdl <- function(labdat, replacement = "0"){
 
 #' Replace above detection limit values
 #'
-#' @param labdat
-#' @param replacement
+#' @param labdat labdat datafile
+#' @param replacement value to replace adl values (default = NA)
 #'
 #' @return
 #' @export
-#'
-#' @examples
 convert_adl <- function(labdat, replacement = NA){
   labdat$result[which(grepl(pattern = "[>]", x = labdat$result))] <- replacement
   labdat$result[which(grepl(pattern = "TNTC", x = labdat$result))] <- replacement
@@ -89,6 +81,12 @@ convert_adl <- function(labdat, replacement = NA){
 
 }
 
+#' Convert asterisked data
+#'
+#' @param labdat
+#'
+#' @return
+#' @export
 convert_ast <- function(labdat){
   labdat$result <- gsub(pattern = "[*]", replacement = "", x = labdat$result)
   labdat$result_flag[which(grepl(pattern = "[*]", x = labdat$result_org))] <- "mod"

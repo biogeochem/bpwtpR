@@ -7,7 +7,9 @@
 convert_adl(labdat, replacement = NA)
 }
 \arguments{
-\item{replacement}{}
+\item{labdat}{labdat datafile}
+
+\item{replacement}{value to replace adl values (default = NA)}
 }
 \value{
 

@@ -15,7 +15,19 @@ group_table_historical(
 )
 }
 \arguments{
-\item{month_select}{}
+\item{df}{dataframe}
+
+\item{year_select}{year of interest}
+
+\item{grouping}{operational grouping}
+
+\item{sampling_station}{sampling location}
+
+\item{percentiles}{percentiles of interest}
+
+\item{by_month}{group by month (T) or by year (F)}
+
+\item{month_select}{month of interest}
 }
 \value{
 

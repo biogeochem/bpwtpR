@@ -7,7 +7,9 @@
 append_calc_values(labdat, labdat_calcs)
 }
 \arguments{
-\item{labdat_calcs}{}
+\item{labdat}{labdat datafile}
+
+\item{labdat_calcs}{calculated values}
 }
 \value{
 

@@ -13,7 +13,13 @@ historical_percentiles(
 )
 }
 \arguments{
-\item{by_month}{}
+\item{df}{dataframe for analysis}
+
+\item{sampling_station}{sampling location}
+
+\item{grouping}{operational metric}
+
+\item{by_month}{collate data by month (T) or by year (F)}
 }
 \value{
 

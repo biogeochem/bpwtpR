@@ -7,7 +7,9 @@
 convert_bdl(labdat, replacement = "0")
 }
 \arguments{
-\item{replacement}{}
+\item{labdat}{labdat datafile}
+
+\item{replacement}{default = 0}
 }
 \value{
 

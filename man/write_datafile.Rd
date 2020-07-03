@@ -7,7 +7,11 @@
 write_datafile(file, outdir, outfilename)
 }
 \arguments{
-\item{outfilename}{}
+\item{file}{filename}
+
+\item{outdir}{output directory}
+
+\item{outfilename}{output file name}
 }
 \value{
 

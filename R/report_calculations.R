@@ -1,11 +1,9 @@
 #' Summarize data by month
 #'
-#' @param labdat
+#' @param labdat labdat data file
 #'
 #' @return
 #' @export
-#'
-#' @examples
 summarize_monthly <- function(labdat){
 
   df.monthly <- labdat %>%
@@ -19,15 +17,13 @@ summarize_monthly <- function(labdat){
 
 #' Calculate historical extremes
 #'
-#' @param df
-#' @param sampling_station
-#' @param grouping
-#' @param by_month
+#' @param df dataframe for analysis
+#' @param sampling_station sampling location
+#' @param grouping operational metric
+#' @param by_month collate data by month (T) or by year (F)
 #'
 #' @return
 #' @export
-#'
-#' @examples
 historical_extremes <- function(df = "", sampling_station = "",
                                 grouping = "", by_month = T){
   if(by_month == T){
@@ -49,16 +45,13 @@ historical_extremes <- function(df = "", sampling_station = "",
 
 #' Calculate historical percentages
 #'
-#' @param df
-#' @param percentiles
-#' @param sampling_station
-#' @param grouping
-#' @param by_month
+#' @param df dataframe for analysis
+#' @param sampling_station sampling location
+#' @param grouping operational metric
+#' @param by_month collate data by month (T) or by year (F)
 #'
 #' @return
 #' @export
-#'
-#' @examples
 historical_percentiles <- function(df = "", percentiles = c(0.1, .25, .50, .75, .9),
                                    sampling_station = "", grouping = "",
                                    by_month = T){
@@ -86,17 +79,15 @@ historical_percentiles <- function(df = "", percentiles = c(0.1, .25, .50, .75, 
 
 # this function will calculate the basic historical metrics by month or overall. Month must be specified by three letter abbr.
 
-#' TCalculate historical stats
+#' Calculate historical stats
 #'
-#' @param df
-#' @param sampling_station
-#' @param grouping
-#' @param by_month
+#' @param df dataframe for analysis
+#' @param sampling_station sampling location
+#' @param grouping operational metric
+#' @param by_month collate data by month (T) or by year (F)
 #'
 #' @return
 #' @export
-#'
-#' @examples
 historical_basics <- function(df = "", sampling_station = "", grouping = "", by_month = T){
 
   if(by_month == T){

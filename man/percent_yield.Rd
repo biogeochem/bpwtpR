@@ -7,11 +7,16 @@
 percent_yield(pre, post)
 }
 \arguments{
-\item{post}{}
+\item{pre}{first measurement}
+
+\item{post}{last measurement}
 }
 \value{
 
 }
 \description{
 Calculate percent yield
+}
+\examples{
+#percent_yield()
 }

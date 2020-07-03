@@ -2,16 +2,22 @@
 % Please edit documentation in R/report_calculations.R
 \name{historical_basics}
 \alias{historical_basics}
-\title{TCalculate historical stats}
+\title{Calculate historical stats}
 \usage{
 historical_basics(df = "", sampling_station = "", grouping = "", by_month = T)
 }
 \arguments{
-\item{by_month}{}
+\item{df}{dataframe for analysis}
+
+\item{sampling_station}{sampling location}
+
+\item{grouping}{operational metric}
+
+\item{by_month}{collate data by month (T) or by year (F)}
 }
 \value{
 
 }
 \description{
-TCalculate historical stats
+Calculate historical stats
 }

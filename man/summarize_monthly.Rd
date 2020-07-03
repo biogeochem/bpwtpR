@@ -7,7 +7,7 @@
 summarize_monthly(labdat)
 }
 \arguments{
-\item{labdat}{}
+\item{labdat}{labdat data file}
 }
 \value{
 

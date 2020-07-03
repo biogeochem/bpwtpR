@@ -66,7 +66,8 @@ build_database <- function(datadir = "data/labdat_datafiles",
 #' @importFrom dplyr bind_rows
 #'
 #' @examples
-#' # scrape_labdatxls(labdat_filename = "routinlabdat_2019.xls", save_output = FALSE)
+#' # scrape_labdatxls(labdat_filename = "routinelabdat_2019.xls",
+#' save_output = FALSE)
 scrape_labdatxls <- function(labdat_filename, save_output = FALSE) {
 
   rawwater <- scrape_rawwater(labdat_filename)
@@ -109,7 +110,8 @@ scrape_rawwater <- function(labdat_filename){
                               sheet = "bp_rw_parms_list",
                               col_names = TRUE)
 
-  thms <- c("Chloroform", "Bromodichloromethane", "Chlorodibromomethane", "Bromoform")
+  thms <- c("Chloroform", "Bromodichloromethane",
+            "Chlorodibromomethane", "Bromoform")
 
   rawwater <- read_excel(labdat_filename, sheet = 1, range = "A8:BE130",
                          col_names = TRUE, col_types = NULL) %>%
@@ -135,7 +137,8 @@ scrape_rawwater <- function(labdat_filename){
     mutate(datetime_ymd.hms = as.numeric(datetime_ymd.hms),
            datetime_ymd.hms = excel_numeric_to_date(datetime_ymd.hms),
            station = as.factor(ifelse(parameter %in% thms |
-                                        grepl("PreFM", parameter), "PreFM","Raw"))) %>%
+                                        grepl("PreFM", parameter),
+                                      "PreFM","Raw"))) %>%
     filter(!is.na(datetime_ymd.hms)) %>%
     add_column(datasheet = "RawWater") %>%
     select(datasheet, station, parameter, unit, datetime_ymd.hms, result)
@@ -269,7 +272,8 @@ scrape_clearwell_thms <- function(labdat_filename){
 #' # scrape_clearwell_al(labdat_filename = "routinelabdata_2019.xls")
 scrape_clearwell_al <- function(labdat_filename){
   # clearwell TAl and DAl
-  cw_Al <- c("Aluminum (dissolved 0.45µ)", "Aluminum (total)", "Aluminum (dissolved)")
+  cw_Al <- c("Aluminum (dissolved 0.45µ)", "Aluminum (total)",
+             "Aluminum (dissolved)")
 
   clearwell_Al <- read_excel(labdat_filename, sheet = 1, range = "A8:BE268",
                              col_names = TRUE, col_types = NULL) %>%
@@ -298,9 +302,11 @@ scrape_clearwell_al <- function(labdat_filename){
     mutate(datetime_ymd.hms = excel_numeric_to_date(datetime_ymd.hms)) %>%
     filter(!is.na(datetime_ymd.hms)) %>%
     mutate(station = ifelse(station == "MMF1" &
-                              datetime_ymd.hms >= "2005-01-01", "MMFA", station)) %>%
+                              datetime_ymd.hms >= "2005-01-01",
+                            "MMFA", station)) %>%
     mutate(station = ifelse(station == "MMF12" &
-                              datetime_ymd.hms >= "2005-01-01", "MMFL", station)) %>%
+                              datetime_ymd.hms >= "2005-01-01",
+                            "MMFL", station)) %>%
     add_column(datasheet = "ClearWell") %>%
     select(datasheet, station, parameter, unit, datetime_ymd.hms, result)
 
@@ -335,7 +341,8 @@ scrape_docprofiles <- function(labdat_filename){
            `Clearwell` = CW...9)
 
   labdat_doc <- select(labdat, c(datetime_ymd.hms, Raw:Clearwell)) %>%
-    pivot_longer(cols = Raw:Clearwell, names_to = "station", values_to = "result") %>%
+    pivot_longer(cols = Raw:Clearwell, names_to = "station",
+                 values_to = "result") %>%
     mutate(datasheet = "doc_profile",
            sheet_year = "",
            parameter = "DOC",
@@ -343,12 +350,14 @@ scrape_docprofiles <- function(labdat_filename){
            parm_unit = "DOC_mg.L", result = as.character(result))
 
   labdat_dose <- select(labdat, datetime_ymd.hms: `CPAC Dose`) %>%
-    pivot_longer(cols = `Alum Dose`:`CPAC Dose`, names_to = "parameter", values_to = "result") %>%
+    pivot_longer(cols = `Alum Dose`:`CPAC Dose`,
+                 names_to = "parameter", values_to = "result") %>%
     mutate(datasheet = "doc_profile",
            sheet_year = "",
            station = "Raw",
            unit = "mg/L",
-           parm_unit = ifelse(parameter == "Alum Dose", "alumdose_mg.L", "cpacdose_mg.L"))
+           parm_unit = ifelse(parameter == "Alum Dose",
+                              "alumdose_mg.L", "cpacdose_mg.L"))
 
 
   labdat_merge <- bind_rows(labdat_doc, labdat_dose) %>%

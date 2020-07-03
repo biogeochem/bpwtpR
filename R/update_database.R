@@ -1,17 +1,18 @@
 #' Update database with new data
 #'
-#' @param labdat_file
-#' @param datadir
-#' @param xlsdir
-#' @param outdir
-#' @param outfilename
+#' @param labdat_file base data file
+#' @param datadir data directory
+#' @param xlsdir labdat xls directory
+#' @param outdir output directory
+#' @param outfilename name of output file
 #'
 #' @return
 #' @export
 #'
 #' @examples
 #' #update_database()
-update_database <- function(labdat_file = "BPWTP_routinelabdata_historicalbase_clean.csv",
+update_database <- function(labdat_file =
+                              "BPWTP_routinelabdata_historicalbase_clean.csv",
                             datadir,
                             xlsdir = "labdat_datafiles",
                             outdir = "./data",
@@ -31,7 +32,8 @@ update_database <- function(labdat_file = "BPWTP_routinelabdata_historicalbase_c
            sheet_year = as.factor(year(datetime_ymd.hms)))
 
   tmp_doc <- scrape_docprofiles(labdat_newfilename) %>%
-    select(datasheet, station, parameter, unit, datetime_ymd.hms, result, sheet_year) %>%
+    select(datasheet, station, parameter, unit,
+           datetime_ymd.hms, result, sheet_year) %>%
     mutate(datetime_ymd.hms = as.POSIXct(datetime_ymd.hms),
            result = as.character(result), sheet_year = as.factor(sheet_year))
 
@@ -62,7 +64,8 @@ update_database <- function(labdat_file = "BPWTP_routinelabdata_historicalbase_c
     mutate(result = as.numeric(result))
 
   new_data <- convert_biocounts(new_data)
-  new_data_calcs <- apply_calculations(new_data %>% filter(datasheet != "doc_profile"))
+  new_data_calcs <- apply_calculations(new_data %>%
+                                         filter(datasheet != "doc_profile"))
 
   new_data <- append_calc_values(new_data, new_data_calcs)
 

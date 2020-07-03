@@ -2,16 +2,18 @@
 % Please edit documentation in R/utilities.R
 \name{append_newdata}
 \alias{append_newdata}
-\title{TAdd new data to dataset}
+\title{Add new data to dataset}
 \usage{
 append_newdata(labdat, new_data)
 }
 \arguments{
-\item{new_data}{}
+\item{labdat}{labdat datafile}
+
+\item{new_data}{new data file}
 }
 \value{
 
 }
 \description{
-TAdd new data to dataset
+Add new data to dataset
 }

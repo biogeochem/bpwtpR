@@ -7,7 +7,9 @@
 tthm_fig(df = "thms", year_select = "")
 }
 \arguments{
-\item{year_select}{}
+\item{df}{default is thms}
+
+\item{year_select}{year of interest}
 }
 \value{
 

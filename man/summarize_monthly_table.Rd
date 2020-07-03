@@ -16,7 +16,9 @@ summarize_monthly_table(
 
 \item{grouping}{data grouping}
 
-\item{year_select}{}
+\item{sampling_station}{sampling location}
+
+\item{year_select}{year of interest}
 }
 \value{
 
