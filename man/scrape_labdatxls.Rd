@@ -18,6 +18,6 @@ data frame of scraped data from an individual sheet
 Scrape data from BPWTP routine lab data (\code{.xls})
 }
 \examples{
-# scrape_labdatxls(labdat_filename = "routinlabdat_2019.xls",
+# scrape_labdatxls(labdat_filename = "routinelabdat_2019.xls",
 save_output = FALSE)
 }

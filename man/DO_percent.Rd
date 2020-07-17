@@ -27,7 +27,3 @@ table.
 \details{
 Dissolved Oxygen (\%) = Bench Diss. Oxygen (mg/L) ÷ Oxygen Solubility (mg/L) * 100.
 }
-\examples{
-calc_BenchDO_percent(O2_table = O2_table, labdat = labdat)
-
-}

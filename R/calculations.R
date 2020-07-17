@@ -87,7 +87,7 @@ apply_calculations <- function(labdat){
 suva <- function(labdat){
   parms <- c("UV254_abs.10cm", "DOC.GFdiss_mg.L.C")
 
-  suva <- labdat_trimmed %>%
+  suva <- labdat %>%
     filter(parm_unit %in% parms) %>%
     select(-c(parameter, unit, parm_tag, parm_eval)) %>%
     pivot_wider(names_from = parm_unit, values_from = result,
@@ -120,8 +120,8 @@ langelier_SatIndex <- function(labdat){
 
   df <- labdat %>%
     filter(parameter %in% parms) %>%
-    select(-c(parm_unit, unit,  parm_tag, result_org, result_flag)) %>%
-    spread(parameter, result) %>%
+    select(-c(parm_unit, unit,  parm_tag, parm_eval, result_org, result_flag)) %>%
+    pivot_wider(id_cols = datasheet:datetime_ymd.hms, names_from = parameter, values_from = result, values_fn = list(result = length)) %>%
     mutate(LSI1_A = 2.24961 - (0.017853 * Temperature) +
              (0.00008238 * Temperature^2) - (0.00000041 * Temperature^3),
            LSI1_m = 0.000025 * TDS,
@@ -190,9 +190,8 @@ DO_percent <- function(labdat, datadir = "data/data_tables",
 
   labdat <- labdat %>%
     filter(parm_unit %in% parms) %>%
-    select(-c(parameter, unit, parm_tag)) %>%
-    mutate(result = as.numeric(result)) %>%
-    spread(parm_unit, result)
+    select(-c(parameter, unit, parm_tag, parm_eval)) %>%
+    pivot_wider(id_cols = datasheet:datetime_ymd.hms, names_from = parm_unit, values_from = result)
 
   labdat_O2Table <- left_join(labdat, O2Table, by = "temperature_C")
 
@@ -356,7 +355,7 @@ ion_balance <- function(labdat){
   parms <- c("Calcium","Magnesium", "Sodium", "Potassium","Sulphate",
              "Chloride", "Bicarbonate", "Carbonate", "Silica (SiO3)")
 
-  df <- labdat_corrected %>%
+  df <- labdat %>%
     filter(parameter %in% parms) %>%
     select(-c(parm_unit, unit, parm_tag, result_org, result_flag)) %>%
     spread(parameter, result) %>%

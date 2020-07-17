@@ -4,10 +4,12 @@
 \alias{scrape_clearwell}
 \title{Scrape clearwell data from \code{.xls} file}
 \usage{
-scrape_clearwell(labdat_filename)
+scrape_clearwell(labdat_filename, clearwell_range)
 }
 \arguments{
 \item{labdat_filename}{file name for routine lab data \code{.xls} file}
+
+\item{clearwell_range}{excel cell range in file}
 }
 \value{
 scraped clearwell data

@@ -4,7 +4,7 @@
 \alias{scrape_rawwater}
 \title{Scrape raw water data from \code{.xls} file}
 \usage{
-scrape_rawwater(labdat_filename)
+scrape_rawwater(labdat_filename, rawwater_range = "A8:BE130")
 }
 \arguments{
 \item{labdat_filename}{file name for routine lab data \code{.xls} file}

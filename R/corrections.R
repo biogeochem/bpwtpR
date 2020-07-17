@@ -102,6 +102,8 @@ convert_ast <- function(labdat){
 #' @param parameters_file name of parameters file
 #' @param data_validation option for data validation. Produces data table with extended column names for verification.
 #'
+#' @importFrom dplyr left_join distinct arrange select mutate rename
+#'
 #' @return data frame with updated parameter names
 #' @export
 #'

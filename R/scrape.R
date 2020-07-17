@@ -70,10 +70,20 @@ build_database <- function(datadir = "data/labdat_datafiles",
 #' save_output = FALSE)
 scrape_labdatxls <- function(labdat_filename, save_output = FALSE) {
 
-  rawwater <- scrape_rawwater(labdat_filename)
-  clearwell <- scrape_clearwell(labdat_filename)
-  clearwell_THMs <- scrape_clearwell_thms(labdat_filename)
-  clearwell_al <- scrape_clearwell_al(labdat_filename)
+  if(grepl("202", labdat_filename)){
+    rawwater_range = "A8:BE130"
+    clearwell_range = "A144:BE266"
+  } else {
+    rawwater_range = "A8:BE136"
+    clearwell_range = "A137:BE276"
+  }
+
+  print(rawwater_range); print(clearwell_range)
+
+  rawwater <- scrape_rawwater(labdat_filename, rawwater_range = rawwater_range)
+  clearwell <- scrape_clearwell(labdat_filename, clearwell_range = clearwell_range)
+  clearwell_THMs <- scrape_clearwell_thms(labdat_filename, clearwell_range = clearwell_range)
+  clearwell_al <- scrape_clearwell_al(labdat_filename, clearwell_range = clearwell_range)
 
   outname <- SplitPath(labdat_filename)$filename
   print(outname)
@@ -105,7 +115,7 @@ scrape_labdatxls <- function(labdat_filename, save_output = FALSE) {
 #'
 #' @examples
 #' # scrape_rawwater(labdat_filename = "routinelabdata_2019.xls")
-scrape_rawwater <- function(labdat_filename){
+scrape_rawwater <- function(labdat_filename, rawwater_range = "A8:BE130"){
   rw_parms_list <- read_excel(path = "./data/bp_parms_list.xlsx",
                               sheet = "bp_rw_parms_list",
                               col_names = TRUE)
@@ -113,7 +123,7 @@ scrape_rawwater <- function(labdat_filename){
   thms <- c("Chloroform", "Bromodichloromethane",
             "Chlorodibromomethane", "Bromoform")
 
-  rawwater <- read_excel(labdat_filename, sheet = 1, range = "A8:BE130",
+  rawwater <- read_excel(labdat_filename, sheet = 1, range = rawwater_range,
                          col_names = TRUE, col_types = NULL) %>%
     filter(Parameters %in% rw_parms_list$Parameters) %>%
     filter(!Parameters %in% c("Langelier Index (RTW)",
@@ -150,6 +160,7 @@ scrape_rawwater <- function(labdat_filename){
 #' Scrape clearwell data from `.xls` file
 #'
 #' @param labdat_filename file name for routine lab data `.xls` file
+#' @param clearwell_range excel cell range in file
 #'
 #' @return scraped clearwell data
 #' @export
@@ -163,16 +174,16 @@ scrape_rawwater <- function(labdat_filename){
 #'
 #' @examples
 #' # scrape_clearwell(labdat_filename = "routinelabdata_2019.xls")
-scrape_clearwell <- function(labdat_filename){
+scrape_clearwell <- function(labdat_filename, clearwell_range){
   cw_parms_list <- read_excel(path = "./data/bp_parms_list.xlsx",
                              sheet = "bp_cw_parms_list",
                              col_names = TRUE)
 
-  clearwell <- read_excel(labdat_filename, sheet = 1, range = "A8:BE268",
+  clearwell <- read_excel(labdat_filename, sheet = 1, range = clearwell_range,
                           col_names = TRUE, col_types = NULL) %>%
     mutate(rownum = as.numeric(rownames(.))) %>%
     select(rownum, everything()) %>%
-    filter(rownum > 122) %>%
+    #filter(rownum > 122) %>%
     select(-rownum) %>%
     filter(Parameters %in% cw_parms_list$Parameters) %>%
     pivot_longer(cols = -c(Parameters, Units), names_to = "datetime_ymd.hms",
@@ -202,6 +213,7 @@ return(clearwell)
 #' Scrape clearwell total halomethanes (thms) data from `.xls` file
 #'
 #' @param labdat_filename file name for routine lab data `.xls` file
+#' @param clearwell_range excel range for clearwell data
 #'
 #' @return scraped clearwell thms data
 #' @export
@@ -214,16 +226,16 @@ return(clearwell)
 #'
 #' @examples
 #' # scrape_clearwell_thms(labdat_filename = "routinelabdata_2019.xls")
-scrape_clearwell_thms <- function(labdat_filename){
+scrape_clearwell_thms <- function(labdat_filename, clearwell_range){
   # clearwell THMs
   cw_THMs <- c("Chloroform", "Chlorodibromomethane",
                "Bromodichloromethane", "Bromoform")
 
-  clearwell_THMs <- read_excel(labdat_filename, sheet = 1, range = "A8:BE268",
+  clearwell_THMs <- read_excel(labdat_filename, sheet = 1, range = clearwell_range,
                                col_names = TRUE, col_types = NULL) %>%
     mutate(rownum = as.numeric(rownames(.))) %>%
     select(rownum, everything()) %>%
-    filter(rownum > 122) %>%
+    #filter(rownum > 122) %>%
     select(-rownum) %>%
     filter(Parameters %in% cw_THMs) %>%
     mutate(rownum = as.numeric(rownames(.))) %>%
@@ -258,6 +270,7 @@ scrape_clearwell_thms <- function(labdat_filename){
 #' Scrape clearwell aluminum data from `.xls` file
 #'
 #' @param labdat_filename file name for routine lab data `.xls` file
+#' @param clearwell_range excel range for clearwell data
 #'
 #' @return scraped clearwell aluminum data
 #' @export
@@ -270,16 +283,16 @@ scrape_clearwell_thms <- function(labdat_filename){
 #'
 #' @examples
 #' # scrape_clearwell_al(labdat_filename = "routinelabdata_2019.xls")
-scrape_clearwell_al <- function(labdat_filename){
+scrape_clearwell_al <- function(labdat_filename, clearwell_range){
   # clearwell TAl and DAl
   cw_Al <- c("Aluminum (dissolved 0.45µ)", "Aluminum (total)",
              "Aluminum (dissolved)")
 
-  clearwell_Al <- read_excel(labdat_filename, sheet = 1, range = "A8:BE268",
+  clearwell_Al <- read_excel(labdat_filename, sheet = 1, range = clearwell_range,
                              col_names = TRUE, col_types = NULL) %>%
     mutate(rownum = as.numeric(rownames(.))) %>%
     select(rownum, everything()) %>%
-    filter(rownum > 122) %>%
+    #filter(rownum > 122) %>%
     select(-rownum) %>%
     #filter(grepl("Aluminum", Parameters))
     filter(Parameters %in% cw_Al) %>%
@@ -319,6 +332,9 @@ scrape_clearwell_al <- function(labdat_filename){
 #'
 #' @param labdat_filename provided file name for the active data file
 #'
+#' @importFrom lubridate year month week
+#' @importFrom readxl cell_limits
+#'
 #' @return
 #' @export
 #'
@@ -328,7 +344,8 @@ scrape_docprofiles <- function(labdat_filename){
              sheet = "WTP DOC Profile", range = cell_limits(ul = c(3, 2)),
              col_names = TRUE)
   labdat <- labdat %>%
-    select(c(`Sample Date`:CW...9)) %>%
+    select(c(`Sample Date`:CW...10)) %>%
+    select(-`Jar Test`) %>%
     filter(grepl(c("^1|^2"), `Sample Date`)) %>%
     rename(datetime_ymd.hms = `Sample Date`,
            `Alum Dose` = `Alum Dose (mg/L)`,
@@ -337,8 +354,8 @@ scrape_docprofiles <- function(labdat_filename){
            `PreFM` = PreFM...5,
            `FM` = FM...6,
            `Channel` = Channel...7,
-           `PreGAC` = `PreGAC/CW...8`,
-           `Clearwell` = CW...9)
+           `PreGAC` = `PreGAC/CW...9`,
+           `Clearwell` = CW...10)
 
   labdat_doc <- select(labdat, c(datetime_ymd.hms, Raw:Clearwell)) %>%
     pivot_longer(cols = Raw:Clearwell, names_to = "station",

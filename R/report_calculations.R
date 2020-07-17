@@ -2,6 +2,10 @@
 #'
 #' @param labdat labdat data file
 #'
+#' @importFrom dplyr mutate group_by summarize
+#' @importFrom magrittr %>%
+#' @importFrom lubridate month
+#'
 #' @return
 #' @export
 summarize_monthly <- function(labdat){
@@ -21,6 +25,9 @@ summarize_monthly <- function(labdat){
 #' @param sampling_station sampling location
 #' @param grouping operational metric
 #' @param by_month collate data by month (T) or by year (F)
+#'
+#' @importFrom dplyr filter group_by summarize
+#' @importFrom magrittr %>%
 #'
 #' @return
 #' @export
@@ -49,6 +56,10 @@ historical_extremes <- function(df = "", sampling_station = "",
 #' @param sampling_station sampling location
 #' @param grouping operational metric
 #' @param by_month collate data by month (T) or by year (F)
+#'
+#' @importFrom purrr map_chr map set_names partial
+#' @importFrom dplyr filter group_by summarize_at
+#' @importFrom magrittr %>%
 #'
 #' @return
 #' @export
@@ -85,6 +96,9 @@ historical_percentiles <- function(df = "", percentiles = c(0.1, .25, .50, .75, 
 #' @param sampling_station sampling location
 #' @param grouping operational metric
 #' @param by_month collate data by month (T) or by year (F)
+#'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr filter group_by summarize
 #'
 #' @return
 #' @export

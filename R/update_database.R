@@ -46,6 +46,7 @@ update_database <- function(labdat_file =
   if(!all(database_dates %in% current_dates)){ # are all values false? TRUE = Yes
     # select the dates that are not in the database
     new_dates <- current_dates[which(!(current_dates %in% database_dates))]
+
     new_data <- tmp %>%
       bind_rows(tmp_doc) %>%
       filter(datetime_ymd.hms %in% new_dates)
@@ -53,9 +54,19 @@ update_database <- function(labdat_file =
     stop("No data to add", call. = T)
   }
 
+  #print(paste("New dates to be added to database:", new_dates))
+
   ## update parameter names
   new_data <- update_parameters(new_data)
 
+  ## remove operational parameters
+  operation_dates = c("GACs ON", "GACs OFF", "Ice OFF", "Ice ON", "PAC OFF", "PAC ON")
+
+  new_data <- new_data %>%
+    filter(!parameter %in% operation_dates,
+           parameter != "Intake")
+
+  ## Correct detection limit and remove values calculated in-sheet
   new_data <- new_data %>%
     filter(parm_eval != "calculated_insheet") %>%
     mutate(result_org = result, ## create a new column for the orginal result
@@ -73,7 +84,7 @@ update_database <- function(labdat_file =
     mutate(year = year(datetime_ymd.hms),
            month = month(datetime_ymd.hms, label = T, abbr = T),
            week = week(datetime_ymd.hms)) %>%
-    select(datasheet:datetime_ymd.hms, year:week, parameter:result) %>%
+    select(datasheet:datetime_ymd.hms, year:week, parameter:result_flag) %>%
     mutate_if(is.character, as.factor)
 
   labdat_updated <- append_newdata(old_data, new_data)
