@@ -75,7 +75,7 @@ scrape_labdatxls <- function(labdat_filename, save_output = FALSE) {
     clearwell_range = "A144:BE266"
   } else {
     rawwater_range = "A8:BE136"
-    clearwell_range = "A137:BE276"
+    clearwell_range = "A8:BE276"
   }
 
   print(rawwater_range); print(clearwell_range)
@@ -183,7 +183,7 @@ scrape_clearwell <- function(labdat_filename, clearwell_range){
                           col_names = TRUE, col_types = NULL) %>%
     mutate(rownum = as.numeric(rownames(.))) %>%
     select(rownum, everything()) %>%
-    #filter(rownum > 122) %>%
+    filter(rownum > 122) %>%
     select(-rownum) %>%
     filter(Parameters %in% cw_parms_list$Parameters) %>%
     pivot_longer(cols = -c(Parameters, Units), names_to = "datetime_ymd.hms",
@@ -235,7 +235,7 @@ scrape_clearwell_thms <- function(labdat_filename, clearwell_range){
                                col_names = TRUE, col_types = NULL) %>%
     mutate(rownum = as.numeric(rownames(.))) %>%
     select(rownum, everything()) %>%
-    #filter(rownum > 122) %>%
+    filter(rownum > 122) %>%
     select(-rownum) %>%
     filter(Parameters %in% cw_THMs) %>%
     mutate(rownum = as.numeric(rownames(.))) %>%
@@ -292,7 +292,7 @@ scrape_clearwell_al <- function(labdat_filename, clearwell_range){
                              col_names = TRUE, col_types = NULL) %>%
     mutate(rownum = as.numeric(rownames(.))) %>%
     select(rownum, everything()) %>%
-    #filter(rownum > 122) %>%
+    filter(rownum > 122) %>%
     select(-rownum) %>%
     #filter(grepl("Aluminum", Parameters))
     filter(Parameters %in% cw_Al) %>%
