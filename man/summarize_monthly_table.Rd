@@ -6,7 +6,8 @@
 \usage{
 summarize_monthly_table(
   df = "",
-  grouping = "",
+  grouping = c("operation", "physical", "majorConstituents", "traceConstituents",
+    "THM", "biological", "bacteriological", "chemicalDoses"),
   sampling_station = "",
   year_select = NULL
 )

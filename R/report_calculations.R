@@ -110,14 +110,14 @@ historical_basics <- function(df = "", sampling_station = "", grouping = "", by_
       filter(parm_tag == grouping & station == sampling_station) %>%
       group_by(station, parameter, unit, month) %>%
       summarize(N = n(), Mean = mean(result, na.rm = T),
-                SD = sd(result, na.rm = T), CV = (SD/N)*100)
+                SD = sd(result, na.rm = T), `% CV` = (SD/N)*100)
   } else{
 
     df %>%
       filter(parm_tag == grouping & station == sampling_station) %>%
       group_by(station, parameter, unit) %>%
       summarize(N = n(), Mean = mean(result, na.rm = T),
-                SD = sd(result, na.rm = T), CV = (SD/N)*100)
+                SD = sd(result, na.rm = T), `% CV` = (SD/N)*100)
   }
 
 }

@@ -55,7 +55,6 @@ summarize_monthly_table <- function(df = "",
                        sampling_station, "sampling location.")
 
 
-  print(str(table_values))
   pander(table_values,
          justify = c("left", "center", rep("right", ncol(table_values)-2)),
          style = "rmarkdown",
