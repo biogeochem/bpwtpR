@@ -65,6 +65,7 @@ plot_all_parameters <- function(df, year_select = "",
 #'   theme scale_color_viridis_c ggsave element_text
 #' @importFrom magrittr %>%
 #' @importFrom dplyr filter mutate
+#' @importFrom cowplot plot_grid
 #'
 #' @return
 #' @export
@@ -107,7 +108,8 @@ parm_fig <- function(df = "", year_select = "", var = "",
                          align = "hv", axis = "tb")
   outname = paste0(year_select,"_",var,".png")
   outpath = file.path(outdir, outname)
-  ggsave(full_plot, filename = outpath, width = 7, height = 6, scale = 1, device = "png")
+  ggsave(full_plot, filename = outpath, width = 4, height = 3, scale = 1, device = "png")
+
   return(full_plot)
 }
 
