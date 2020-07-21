@@ -97,7 +97,7 @@ suva <- function(labdat){
     select(datasheet:datetime_ymd.hms, suva) %>%
     gather(parm_unit, result, suva) %>%
     mutate(parameter = "SUVA", parm_eval = "calculated",
-           parm_tag = "traceConstituents", unit = "") %>%
+           parm_tag = "traceConstituents", unit = "L/(mg-m)") %>%
     select(datasheet: datetime_ymd.hms, parameter, unit, parm_unit, parm_eval, parm_tag, result) %>%
     filter(result != "Inf")
   return(suva)
@@ -121,7 +121,9 @@ langelier_SatIndex <- function(labdat){
   df <- labdat %>%
     filter(parameter %in% parms) %>%
     select(-c(parm_unit, unit,  parm_tag, parm_eval, result_org, result_flag)) %>%
-    pivot_wider(id_cols = datasheet:datetime_ymd.hms, names_from = parameter, values_from = result, values_fn = list(result = length)) %>%
+    pivot_wider(id_cols = datasheet:datetime_ymd.hms,
+                names_from = parameter,
+                values_from = result) %>%
     mutate(LSI1_A = 2.24961 - (0.017853 * Temperature) +
              (0.00008238 * Temperature^2) - (0.00000041 * Temperature^3),
            LSI1_m = 0.000025 * TDS,
@@ -143,7 +145,7 @@ langelier_SatIndex <- function(labdat){
     mutate(parameter = parm_unit,
            parameter = ifelse(parameter == "LSI1", "Langelier Saturation Index 1",
                               ifelse(parameter == "LSI2", "Langelier Saturation Index 2", parameter)),
-           parm_eval = "calculated", parm_tag = "operations",
+           parm_eval = "calculated", parm_tag = "physical",
            unit = "mg/L") %>%
     select(datasheet: datetime_ymd.hms, parameter, unit, parm_unit, parm_eval, parm_tag, result)
 
@@ -191,7 +193,8 @@ DO_percent <- function(labdat, datadir = "data/data_tables",
   labdat <- labdat %>%
     filter(parm_unit %in% parms) %>%
     select(-c(parameter, unit, parm_tag, parm_eval)) %>%
-    pivot_wider(id_cols = datasheet:datetime_ymd.hms, names_from = parm_unit, values_from = result)
+    pivot_wider(id_cols = datasheet:datetime_ymd.hms,
+                names_from = parm_unit, values_from = result)
 
   labdat_O2Table <- left_join(labdat, O2Table, by = "temperature_C")
 
@@ -283,7 +286,7 @@ tot_B_BG_algae <- function(labdat) {
     mutate(tot_B_BG_algae = `Blue Green Algae` + `Green Algae`) %>%
     select(datasheet:datetime_ymd.hms, tot_B_BG_algae) %>%
     gather(parameter, result, tot_B_BG_algae) %>%
-    mutate(parameter = "Total BG + A", parm_eval = "calculated",
+    mutate(parameter = "Total BG + G", parm_eval = "calculated",
            parm_tag = "biological",
            unit = "mg/L", parm_unit = "cells.L") %>%
     select(datasheet: datetime_ymd.hms, parameter, unit,
