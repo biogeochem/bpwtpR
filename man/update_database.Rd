@@ -5,7 +5,7 @@
 \title{Update database with new data}
 \usage{
 update_database(
-  labdat_file = "BPWTP_routinelabdata_historicalbase_clean.csv",
+  labdat_file = "20200720_BPWTP_routinelabdata_historicalbase_clean.csv",
   datadir,
   xlsdir = "labdat_datafiles",
   outdir = "./data",

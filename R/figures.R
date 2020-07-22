@@ -48,7 +48,7 @@ plot_all_parameters <- function(df, year_select = "",
   parms_list <- unique(df$parameter)
 
   for(i in 1:n_parms){
-
+    print(parms_list[i])
     parm_fig(df = df, year_select = year_select, var = parms_list[i])
   }
 
@@ -106,9 +106,9 @@ parm_fig <- function(df = "", year_select = "", var = "",
   full_plot <- plot_grid(trend_plot, boxplot_plot, ncol = 2,
                          rel_widths = c(0.75,0.35),
                          align = "hv", axis = "tb")
-  outname = paste0(year_select,"_",var,".png")
+  outname = paste0(var,".png")
   outpath = file.path(outdir, outname)
-  ggsave(full_plot, filename = outpath, width = 4, height = 3, scale = 1, device = "png")
+  ggsave(full_plot, filename = outpath, width = 4, height = 3, scale = 1.5, device = "png")
 
   return(full_plot)
 }
@@ -125,7 +125,7 @@ parm_fig <- function(df = "", year_select = "", var = "",
 #' @export
 trend_fig <- function(df = "", year_select = "", var = "") {
   p <- ggplot(data = df %>%
-                filter(year == year_select),
+                filter(year == year_select, !is.na(station)),
               aes(x = week, y = result, col = station)) +
     geom_point(data = df, aes(x = week, y = result), col = "grey", alpha = 0.4) +
     stat_summary(data = df, geom = "line", fun = "mean", col = "grey", size = 1) +

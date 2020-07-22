@@ -72,7 +72,7 @@ scrape_labdatxls <- function(labdat_filename, save_output = FALSE) {
 
   if(grepl("202", labdat_filename)){
     rawwater_range = "A8:BE130"
-    clearwell_range = "A144:BE266"
+    clearwell_range = "A8:BE266"
   } else {
     rawwater_range = "A8:BE136"
     clearwell_range = "A8:BE276"

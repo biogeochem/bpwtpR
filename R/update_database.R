@@ -12,7 +12,7 @@
 #' @examples
 #' #update_database()
 update_database <- function(labdat_file =
-                              "BPWTP_routinelabdata_historicalbase_clean.csv",
+                              "20200720_BPWTP_routinelabdata_historicalbase_clean.csv",
                             datadir,
                             xlsdir = "labdat_datafiles",
                             outdir = "./data",

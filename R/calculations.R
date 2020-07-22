@@ -377,7 +377,7 @@ ion_balance <- function(labdat){
            parameter = ifelse(parm_unit == "anion_sum", "Anion Sum",
                               ifelse(parm_unit == "cation_sum", "Cation Sum",
                                      ifelse(parm_unit == "ion_percdiff",
-                                            "Ion % Difference", NA))),
+                                            "Ion Perc Difference", NA))),
            parm_eval = "calculated", parm_tag = "operations") %>%
     select(datasheet, station, datetime_ymd.hms, parameter, unit:parm_tag, result)
 
@@ -409,7 +409,7 @@ alumDOC_ratio <- function(labdat) {
     group_by(datetime_ymd.hms) %>%
     mutate(result = Alum/DOC,
            datasheet = "NA", station = "NA",
-           parameter = "alum/DOC ratio",
+           parameter = "alum to DOC ratio",
            unit = "NA", parm_unit = "NA",
            parm_eval = "calculated", parm_tag = "operations") %>%
     select(datasheet, station, datetime_ymd.hms, parameter:parm_unit,
@@ -442,7 +442,7 @@ alumDOC_stoich <- function(labdat) {
     group_by(datetime_ymd.hms) %>%
     mutate(result = (Alum/DOC) / 12.33,
            datasheet = "NA", station = "NA",
-           parameter = "alum/DOC ratio",
+           parameter = "alum to DOC ratio",
            unit = "NA", parm_unit = "NA",
            parm_eval = "calculated", parm_tag = "operations") %>%
     select(datasheet, station, datetime_ymd.hms, parameter:parm_unit,
