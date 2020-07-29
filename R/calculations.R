@@ -146,7 +146,7 @@ langelier_SatIndex <- function(labdat){
            parameter = ifelse(parameter == "LSI1", "Langelier Saturation Index 1",
                               ifelse(parameter == "LSI2", "Langelier Saturation Index 2", parameter)),
            parm_eval = "calculated", parm_tag = "physical",
-           unit = "mg/L") %>%
+           unit = "pH units") %>%
     select(datasheet: datetime_ymd.hms, parameter, unit, parm_unit, parm_eval, parm_tag, result)
 
   return(df)
