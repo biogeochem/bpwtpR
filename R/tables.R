@@ -19,8 +19,7 @@
 summarize_monthly_table <- function(df = "",
                                     grouping = c("operation","physical",
                                                  "majorConstituents", "traceConstituents",
-                                                 "THM", "biological","bacteriological",
-                                                 "chemicalDoses"),
+                                                 "THM", "biological","bacteriological"),
                                     sampling_station = "", year_select = NULL){
 
   if(is.null(year_select)){
@@ -35,16 +34,23 @@ summarize_monthly_table <- function(df = "",
 
   if(grouping == "biological"){
     num_format = "e"
-    num_digits = 2
   } else {
     num_format = "f"
-    num_digits = 2
   }
+
+
+  parameter_digits <- read.csv("./data/parameter_digits.csv")
 
   table_values <- table_values %>%
     select(month, parameter, unit, `Monthly Mean`) %>%
-    mutate(`Monthly Mean` = formatC(`Monthly Mean`,
-                                    format = num_format, digits = num_digits)) %>%
+    left_join(parameter_digits)
+
+  # correct percision
+  for(i in 1:nrow(table_values)){
+    table_values$`Monthly Mean`[i] <- formatC(table_values$`Monthly Mean`[i], digits = table_values$digits[i], format = "f")
+  }
+
+  table_values <- table_values %>%
     pivot_wider(names_from = month, values_from = `Monthly Mean`)
 
 
