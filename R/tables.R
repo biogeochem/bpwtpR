@@ -45,17 +45,20 @@ summarize_monthly_table <- function(df = "",
     select(month, parameter, unit, `Monthly Mean`) %>%
     left_join(parameter_digits)
 
-  # correct percision
+  # correct precision
   for(i in 1:nrow(table_values)){
-    table_values$`Monthly Mean`[i] <- formatC(table_values$`Monthly Mean`[i], digits = table_values$digits[i], format = "f")
+    table_values$format_value[i] <- formatC(table_values$`Monthly Mean`[i],
+                                            digits = table_values$digits[i],
+                                            format = num_format)
   }
 
   table_values <- table_values %>%
-    pivot_wider(names_from = month, values_from = `Monthly Mean`)
+    pivot_wider(id_cols = parameter, names_from = month, values_from = format_value)
 
 
   table_values <- as.matrix(table_values)
   table_values[is.na(table_values)] <- "--"
+  table_values[table_values == "NaN"] <- "--"
 
   caption.text = paste(year_select, "monthly summary table at the ",
                        sampling_station, "sampling location.")
