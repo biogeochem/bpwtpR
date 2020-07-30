@@ -48,7 +48,7 @@ plot_all_parameters <- function(df, year_select = "",
   parms_list <- unique(df$parameter)
 
   for(i in 1:n_parms){
-    print(parms_list[i])
+    #print(parms_list[i])
     parm_fig(df = df, year_select = year_select, var = parms_list[i])
   }
 
