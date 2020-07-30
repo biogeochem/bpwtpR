@@ -71,11 +71,11 @@ build_database <- function(datadir = "data/labdat_datafiles",
 scrape_labdatxls <- function(labdat_filename, save_output = FALSE) {
 
   if(grepl("202", labdat_filename)){
-    rawwater_range = "A8:BE130"
-    clearwell_range = "A8:BE266"
-  } else {
     rawwater_range = "A8:BE136"
     clearwell_range = "A8:BE276"
+  } else {
+    rawwater_range = "A8:BE130"
+    clearwell_range = "A8:BE266"
   }
 
   print(rawwater_range); print(clearwell_range)
