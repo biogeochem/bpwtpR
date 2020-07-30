@@ -7,7 +7,7 @@
 summarize_monthly_table(
   df = "",
   grouping = c("operation", "physical", "majorConstituents", "traceConstituents",
-    "THM", "biological", "bacteriological", "chemicalDoses"),
+    "THM", "biological", "bacteriological"),
   sampling_station = "",
   year_select = NULL
 )
