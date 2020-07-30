@@ -53,7 +53,7 @@ summarize_monthly_table <- function(df = "",
   }
 
   table_values <- table_values %>%
-    pivot_wider(id_cols = parameter, names_from = month, values_from = format_value)
+    pivot_wider(id_cols = c(parameter, unit), names_from = month, values_from = format_value)
 
 
   table_values <- as.matrix(table_values)
@@ -92,70 +92,136 @@ summarize_monthly_table <- function(df = "",
 group_table_historical <- function(df = "", year_select = "", grouping = "",
                                    sampling_station = "", percentiles = "",
                                    by_month = T, month_select = NULL){
-  if(is.null(month_select)){
-    month_select = month(Sys.Date(), label = T, abbr = T)}
+
+  parameter_digits <- read.csv("./data/parameter_digits.csv")
+
+  if(grouping == "biological"){
+    num_format = "e"
+  } else {
+    num_format = "f"
+  }
+
 
   df <- df %>%
     filter(parm_tag == grouping & station == sampling_station)
 
-  month_values <- summarize_monthly(labdat = df) %>%
-    filter(month == month_select, year == year_select)
 
+  # monthly mean
+  month_values <- summarize_monthly(labdat = df) %>%
+    filter(month == month_select, year == year_select) %>%
+    left_join(parameter_digits)
+
+  for(i in 1:nrow(month_values)){
+    month_values$`Monthly Mean`[i] <- formatC(month_values$`Monthly Mean`[i],
+                                              digits = month_values$digits[i],
+                                              format = num_format)
+  }
+
+
+  # historical extremes
   hist_ext <- historical_extremes(df = df, grouping = grouping,
                                   sampling_station = sampling_station,
-                                  by_month = by_month)
+                                  by_month = by_month) %>%
+    left_join(parameter_digits) %>% data.frame()
+
+  for(i in 1:nrow(hist_ext)){
+    hist_ext$Min_format[i] <- formatC(hist_ext$Min[i],
+                                      digits = hist_ext$digits[i],
+                                      format = num_format)
+    hist_ext$Max_format[i] <- formatC(hist_ext$Max[i],
+                                      digits = hist_ext$digits[i],
+                                      format = num_format)
+  }
+
+  # historical percentiles
   hist_per <- historical_percentiles(df = df, grouping = grouping,
                                      sampling_station = sampling_station,
                                      percentiles = percentiles,
-                                     by_month = by_month)
+                                     by_month = by_month)%>%
+    left_join(parameter_digits) %>% data.frame()
+
+  for(i in 1:nrow(hist_per)){
+    hist_per$X10._format[i] <- formatC(hist_per$X10.[i] ,
+                                       digits = hist_per$digits[i],
+                                       format = num_format)
+    hist_per$X25._format[i] <- formatC(hist_per$X25.[i] ,
+                                       digits = hist_per$digits[i],
+                                       format = num_format)
+    hist_per$X50._format[i] <- formatC(hist_per$X50.[i] ,
+                                       digits = hist_per$digits[i],
+                                       format = num_format)
+    hist_per$X75._format[i] <- formatC(hist_per$X75.[i] ,
+                                       digits = hist_per$digits[i],
+                                       format = num_format)
+    hist_per$X90._format[i] <- formatC(hist_per$X90.[i] ,
+                                       digits = hist_per$digits[i],
+                                       format = num_format)
+  }
+
+  # historical basics
   hist_bas <- historical_basics(df = df, grouping = grouping,
                                 sampling_station = sampling_station,
-                                by_month = by_month)
+                                by_month = by_month) %>%
+    left_join(parameter_digits) %>%
+    data.frame() %>%
+    mutate(Mean = as.numeric(Mean),
+           SD = as.numeric(SD),
+           X..CV = as.numeric(X..CV))
+
+  for(i in 1:nrow(hist_bas)){
+    hist_bas$Mean_format[i] <- formatC(hist_bas$Mean[i] ,
+                                       digits = hist_bas$digits[i],
+                                       format = num_format)
+    hist_bas$SD_format[i] <- formatC(hist_bas$SD[i],
+                                     digits = hist_bas$digits[i],
+                                     format = num_format)
+    hist_bas$`% CV_format`[i] <- formatC(hist_bas$X..CV[i],
+                                         digits = hist_bas$digits[i],
+                                         format = num_format)
+  }
 
 
+  merged_values <- left_join(hist_bas, hist_ext) %>%
+    left_join(hist_per) %>%
+    select(station:N, ends_with("_format"))
 
-  if(by_month == T) {
-    hist.values <- left_join(hist_bas, hist_ext) %>%
-      left_join(hist_per)
-    hist.values$month <- factor(hist.values$month, ordered = T, levels = month.abb)
-    hist.values <- hist.values[hist.values$month == month_select,]
-    table_values <- left_join(month_values, hist.values)
-    table_values <- as.data.frame(table_values)
-    table_values[,c(7:ncol(table_values))] <-
-      signif(table_values[,c(7:ncol(table_values))], digits = 2)
-    table_values <- as.matrix(table_values)
-    table_values[is.na(table_values)] <- "--"
+  if(by_month == F){
+    names(merged_values) <- c(names(merged_values)[1:4],
+                              gsub("_format", "", names(merged_values)[5:9]),
+                              "10%", "25%", "50%", "75%", "90%")
+
+    caption.text = paste0("Overall historical summary (", min(df$year), "-",
+                          max(df$year), ") for ", sampling_station, " ",
+                          grouping, " water quality characteristics.")
+  } else {
+
+    names(merged_values) <- c(names(merged_values)[1:5],
+                              gsub("_format", "", names(merged_values)[6:10]),
+                              "10%", "25%", "50%", "75%", "90%")
+
+    merged_values <- merged_values %>%
+      mutate(month = factor(month, ordered = T, levels = month.abb)) %>%
+      filter(month == month_select)
 
     caption.text = paste(sampling_station, grouping, "characterics for",
                          month_select, year_select, "with collated", month_select,
                          "historical data from", min(df$year), "-",
                          max(df$year), ".")
-
-    pander(table_values[, c(6, 2, 7:ncol(table_values))],
-           justify = c("left", "center", rep("right", ncol(table_values) - 6)),
-           style = "rmarkdown", split.table = Inf,
-           caption = caption.text, graph.fontsize = 9)
-
-  } else {
-
-    table_values <- left_join(hist_bas, hist_ext) %>% left_join(hist_per)
-
-    table_values[,c(5:ncol(table_values))] <-
-      signif(table_values[,c(5:ncol(table_values))], digits = 2)
-    table_values <- as.matrix(table_values)
-    table_values[is.na(table_values)] <- "--"
-
-    caption.text = paste0("Overall historical summary (", min(df$year), "-",
-                          max(df$year), ") for ", sampling_station, " ",
-                          grouping, " water quality characteristics.")
-
-    pander(table_values[,2:ncol(table_values)],
-           justify = c("left", "center", rep("right",ncol(table_values) - 3)),
-           style = "rmarkdown", split.table = Inf,
-           caption = caption.text, graph.fontsize = 9)
-
   }
 
+  replace_list <- c("NA","NaN","-Inf","Inf")
+
+  ## stopiing::need to replace values
+  for(i in 1:length(replace_list)){
+    merged_values[merged_values == replace_list[i]] <- "--"
+  }
+
+
+
+  pander(merged_values[, c(2,3,5:ncol(merged_values))],
+         justify = c("left", "center", rep("right", ncol(merged_values) - 4)),
+         style = "rmarkdown", split.table = Inf,
+         caption = caption.text, graph.fontsize = 9)
 }
 
 
