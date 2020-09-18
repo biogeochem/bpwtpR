@@ -236,7 +236,7 @@ scrape_clearwell_thms <- function(labdat_filename, clearwell_range){
     mutate(rownum = as.numeric(rownames(.))) %>%
     select(rownum, everything()) %>%
     filter(rownum > 122) %>%
-    select(-rownum) %>%
+    select(!rownum & !starts_with("...")) %>%
     filter(Parameters %in% cw_THMs) %>%
     mutate(rownum = as.numeric(rownames(.))) %>%
     select(rownum, everything()) %>%
@@ -249,7 +249,7 @@ scrape_clearwell_thms <- function(labdat_filename, clearwell_range){
                               rownum == 11 | rownum == 12,
                             "PreGAC", station)) %>%
     select(rownum, Parameters, Units, station, everything()) %>%
-    select(-c(5, 6)) %>%
+    # select(-c(5, 6)) %>%
     select(-c(rownum)) %>%
     pivot_longer(
       cols = -c(Parameters, Units, station),
