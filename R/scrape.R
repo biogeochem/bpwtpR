@@ -138,7 +138,7 @@ scrape_rawwater <- function(labdat_filename, rawwater_range = "A8:BE130"){
            parm_eval = ifelse(Parameters == "TDS" &
                                 Units == "mg/L(calc)", "calc", parm_eval)) %>%
     filter(!parm_eval %in% "calc") %>%
-    select(-c(3:5)) %>%
+    select(!parm_eval & !starts_with("...")) %>%
     pivot_longer(
       cols = -c(Parameters, Units),
       names_to = "datetime_ymd.hms",
@@ -184,7 +184,7 @@ scrape_clearwell <- function(labdat_filename, clearwell_range){
     mutate(rownum = as.numeric(rownames(.))) %>%
     select(rownum, everything()) %>%
     filter(rownum > 122) %>%
-    select(-rownum) %>%
+    select(!rownum & !starts_with("...")) %>%
     filter(Parameters %in% cw_parms_list$Parameters) %>%
     pivot_longer(cols = -c(Parameters, Units), names_to = "datetime_ymd.hms",
                  values_to = "result") %>%
