@@ -138,7 +138,7 @@ scrape_rawwater <- function(labdat_filename, rawwater_range = "A8:BE130"){
            parm_eval = ifelse(Parameters == "TDS" &
                                 Units == "mg/L(calc)", "calc", parm_eval)) %>%
     filter(!parm_eval %in% "calc") %>%
-    select(-c(3:5)) %>%
+    select(!parm_eval & !starts_with("...")) %>%
     pivot_longer(
       cols = -c(Parameters, Units),
       names_to = "datetime_ymd.hms",
@@ -184,7 +184,7 @@ scrape_clearwell <- function(labdat_filename, clearwell_range){
     mutate(rownum = as.numeric(rownames(.))) %>%
     select(rownum, everything()) %>%
     filter(rownum > 122) %>%
-    select(-rownum) %>%
+    select(!rownum & !starts_with("...")) %>%
     filter(Parameters %in% cw_parms_list$Parameters) %>%
     pivot_longer(cols = -c(Parameters, Units), names_to = "datetime_ymd.hms",
                  values_to = "result") %>%
@@ -236,7 +236,7 @@ scrape_clearwell_thms <- function(labdat_filename, clearwell_range){
     mutate(rownum = as.numeric(rownames(.))) %>%
     select(rownum, everything()) %>%
     filter(rownum > 122) %>%
-    select(-rownum) %>%
+    select(!rownum & !starts_with("...")) %>%
     filter(Parameters %in% cw_THMs) %>%
     mutate(rownum = as.numeric(rownames(.))) %>%
     select(rownum, everything()) %>%
@@ -249,7 +249,7 @@ scrape_clearwell_thms <- function(labdat_filename, clearwell_range){
                               rownum == 11 | rownum == 12,
                             "PreGAC", station)) %>%
     select(rownum, Parameters, Units, station, everything()) %>%
-    select(-c(5, 6)) %>%
+    # select(-c(5, 6)) %>%
     select(-c(rownum)) %>%
     pivot_longer(
       cols = -c(Parameters, Units, station),
@@ -293,7 +293,7 @@ scrape_clearwell_al <- function(labdat_filename, clearwell_range){
     mutate(rownum = as.numeric(rownames(.))) %>%
     select(rownum, everything()) %>%
     filter(rownum > 122) %>%
-    select(-rownum) %>%
+    select(!rownum & !starts_with("...")) %>%
     #filter(grepl("Aluminum", Parameters))
     filter(Parameters %in% cw_Al) %>%
     mutate(rownum = as.numeric(rownames(.))) %>%
@@ -303,7 +303,7 @@ scrape_clearwell_al <- function(labdat_filename, clearwell_range){
     mutate(station = ifelse(rownum == 4, "MMF12", station)) %>%
     mutate(station = ifelse(rownum == 5 | rownum == 6, "PreGAC", station)) %>%
     select(rownum, Parameters, Units, station, everything()) %>%
-    select(-c(5, 6)) %>%
+    # select(-c(5, 6)) %>%
     select(-c(rownum)) %>%
     pivot_longer(cols = -c(Parameters, Units, station),
                  names_to = "datetime_ymd.hms",

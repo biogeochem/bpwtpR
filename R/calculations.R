@@ -121,9 +121,9 @@ langelier_SatIndex <- function(labdat){
   df <- labdat %>%
     filter(parameter %in% parms) %>%
     select(-c(parm_unit, unit,  parm_tag, parm_eval, result_org, result_flag)) %>%
-    pivot_wider(id_cols = datasheet:datetime_ymd.hms,
-                names_from = parameter,
-                values_from = result) %>%
+    pivot_wider(names_from = parameter,
+                values_from = result,
+                values_fn = mean) %>%
     mutate(LSI1_A = 2.24961 - (0.017853 * Temperature) +
              (0.00008238 * Temperature^2) - (0.00000041 * Temperature^3),
            LSI1_m = 0.000025 * TDS,
