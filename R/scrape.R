@@ -358,7 +358,7 @@ scrape_docprofiles <- function(labdat_filename){
            `Clearwell` = CW...10)
 
   labdat_doc <- select(labdat, c(datetime_ymd.hms, Raw:Clearwell)) %>%
-    pivot_longer(cols = Raw:Clearwell, names_to = "station",
+    pivot_longer(cols = c(Raw:Clearwell), names_to = "station",
                  values_to = "result") %>%
     mutate(datasheet = "doc_profile",
            sheet_year = "",
@@ -367,7 +367,7 @@ scrape_docprofiles <- function(labdat_filename){
            parm_unit = "DOC_mg.L", result = as.character(result))
 
   labdat_dose <- select(labdat, datetime_ymd.hms: `CPAC Dose`) %>%
-    pivot_longer(cols = `Alum Dose`:`CPAC Dose`,
+    pivot_longer(cols = c(`Alum Dose`:`CPAC Dose`),
                  names_to = "parameter", values_to = "result") %>%
     mutate(datasheet = "doc_profile",
            sheet_year = "",
