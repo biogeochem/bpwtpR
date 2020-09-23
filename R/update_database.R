@@ -25,7 +25,8 @@ update_database <- function(labdat_file =
 
   ## load data
   old_data <- read_labdat(datadir = datadir, labdat_file = labdat_file) %>%
-    mutate(sheet_year = as.factor(sheet_year))
+    mutate(sheet_year = as.factor(sheet_year),
+           month = month(datetime_ymd.hms, label = TRUE))
 
   tmp <- scrape_labdatxls(labdat_newfilename) %>%
     mutate(datetime_ymd.hms = as.POSIXct(datetime_ymd.hms),
