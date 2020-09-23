@@ -119,8 +119,7 @@ update_parameters <- function(labdat, parameters_file = "parameters.csv",
            unit = as.character(unit))
 
   labdat.mod <- labdat  %>%
-    left_join(labdat_parameters, by = c("datasheet","station","parameter","unit",
-                                        "parm_unit", "parm_eval", "parm_tag"))
+    left_join(labdat_parameters, by = c("datasheet","station","parameter","unit"))
 
   parm_check <- labdat.mod %>%
     filter(is.na(parm_unit)) %>%
