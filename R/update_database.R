@@ -30,7 +30,8 @@ update_database <- function(labdat_file =
 
   tmp <- scrape_labdatxls(labdat_newfilename) %>%
     mutate(datetime_ymd.hms = as.POSIXct(datetime_ymd.hms),
-           sheet_year = as.factor(year(datetime_ymd.hms)))
+           sheet_year = as.factor(year(datetime_ymd.hms)),
+           result = as.numeric(result))
 
   tmp_doc <- scrape_docprofiles(labdat_newfilename) %>%
     select(datasheet, station, parameter, unit,
