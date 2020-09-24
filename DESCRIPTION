@@ -1,6 +1,6 @@
 Package: bpwtpR
 Title: Buffalo Pound Water Treatment Plant (BPWTP) data integration and reporting
-Version: 0.0.0.9001
+Version: 0.0.0.9003
 Authors@R: c(
     person(given = "Megan L.",
            family = "Larsen",
