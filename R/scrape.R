@@ -384,7 +384,6 @@ scrape_docprofiles <- function(labdat_filename){
            year = year(datetime_ymd.hms),
            month = month(datetime_ymd.hms, label = T, abbr = T),
            week = week(datetime_ymd.hms),
-           result_org = result,
-           result = as.numeric(result))
+           result_org = result)
 
 }
