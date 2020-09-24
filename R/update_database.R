@@ -26,7 +26,8 @@ update_database <- function(labdat_file =
   ## load data
   old_data <- read_labdat(datadir = datadir, labdat_file = labdat_file) %>%
     mutate(sheet_year = as.factor(sheet_year),
-           month = month(datetime_ymd.hms, label = TRUE))
+           month = month(datetime_ymd.hms, label = TRUE),
+           result_org = as.character(result_org)) # force character in case of things in new_data or old_data
 
   tmp <- scrape_labdatxls(labdat_newfilename) %>%
     mutate(datetime_ymd.hms = as.POSIXct(datetime_ymd.hms),
@@ -37,7 +38,7 @@ update_database <- function(labdat_file =
     select(datasheet, station, parameter, unit,
            datetime_ymd.hms, result, sheet_year) %>%
     mutate(datetime_ymd.hms = as.POSIXct(datetime_ymd.hms),
-           result = as.character(result), sheet_year = as.factor(sheet_year))
+           result = as.numeric(result), sheet_year = as.factor(sheet_year))
 
   ## select new data
   database_dates <- unique(old_data$datetime_ymd.hms)
@@ -71,7 +72,7 @@ update_database <- function(labdat_file =
   ## Correct detection limit and remove values calculated in-sheet
   new_data <- new_data %>%
     filter(parm_eval != "calculated_insheet") %>%
-    mutate(result_org = result, ## create a new column for the orginal result
+    mutate(result_org = as.character(result), ## create a new column for the original result, force character in case of things in new_data or old_data
            result_flag = "") %>%
     replace_dl()%>%
     mutate(result = as.numeric(result))
