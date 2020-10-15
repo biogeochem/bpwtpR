@@ -75,14 +75,14 @@ historical_percentiles <- function(df = "", percentiles = c(0.1, .25, .50, .75, 
     df %>%
       filter(parm_tag == grouping & station == sampling_station) %>%
       group_by(station, parameter, unit, month) %>%
-      summarize_at(vars(result), funs(!!!p_funs))
+      summarize_at(vars(result), p_funs)
 
   } else {
 
     df %>%
       filter(parm_tag == grouping & station == sampling_station) %>%
       group_by(station, parameter, unit) %>%
-      summarize_at(vars(result), funs(!!!p_funs))
+      summarize_at(vars(result), p_funs)
   }
 
 }
