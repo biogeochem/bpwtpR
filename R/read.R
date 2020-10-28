@@ -16,7 +16,7 @@ read_labdat <- function(datadir = "data",
                         labdat_file = ""){
 
   fpath <- file.path(datadir, labdat_file)
-  labdat <- read.csv(fpath)
+  labdat <- read.csv(fpath, fileEncoding = "ISO-8859-1")
 
   labdat <- labdat %>%
     mutate(datetime_ymd.hms = as.POSIXct(datetime_ymd.hms))

@@ -39,7 +39,7 @@ summarize_monthly_table <- function(df = "",
   }
 
 
-  parameter_digits <- read.csv("./data/parameter_digits.csv")
+  parameter_digits <- read.csv("./data/parameter_digits.csv", fileEncoding = "ISO-8859-1")
 
   table_values <- table_values %>%
     select(month, parameter, unit, `Monthly Mean`) %>%
@@ -93,7 +93,7 @@ group_table_historical <- function(df = "", year_select = "", grouping = "",
                                    sampling_station = "", percentiles = "",
                                    by_month = T, month_select = NULL){
 
-  parameter_digits <- read.csv("./data/parameter_digits.csv")
+  parameter_digits <- read.csv("./data/parameter_digits.csv", fileEncoding = "ISO-8859-1")
 
   if(grouping == "biological"){
     num_format = "e"

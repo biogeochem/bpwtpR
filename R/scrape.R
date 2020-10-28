@@ -49,7 +49,7 @@ build_database <- function(datadir = "data/labdat_datafiles",
   labdat.historical <- do.call(rbind,lapply(files, scrape_labdatxls))
 
   outpath <- file.path(outdir, outfile)
-  write.csv(labdat.historical, file = outpath, row.names = F)
+  write.csv(labdat.historical, file = outpath, row.names = F, fileEncoding = "ISO-8859-1")
 
 }
 
@@ -92,7 +92,7 @@ scrape_labdatxls <- function(labdat_filename, save_output = FALSE) {
     mutate(sheet_year = substr(outname, start = 1, stop = 4))
   if(isTRUE(save_output)){
     dir.create("./output/scraped_data", showWarnings = FALSE)
-    write.csv(bp_longterm, file = paste0("./output/scraped_data/", outname,".csv"))
+    write.csv(bp_longterm, file = paste0("./output/scraped_data/", outname,".csv"), fileEncoding = "ISO-8859-1")
   }
 
   return(as.data.frame(bp_longterm))
