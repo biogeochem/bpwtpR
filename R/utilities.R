@@ -24,7 +24,7 @@ percent_yield <- function(pre, post){
 write_datafile <- function(file, outdir, outfilename){
   outpath <- file.path(outdir, outfilename)
   print(outpath)
-  write.csv(x = file, file = outpath, row.names = FALSE)
+  write.csv(x = file, file = outpath, row.names = FALSE, fileEncoding = "ISO-8859-1")
 }
 
 #' Add new data to dataset

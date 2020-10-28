@@ -114,7 +114,7 @@ update_parameters <- function(labdat, parameters_file = "parameters.csv",
   dir <- "./data"
   fpath <- file.path(dir, parameters_file)
 
-  labdat_parameters <- read.csv(fpath) %>%
+  labdat_parameters <- read.csv(fpath, fileEncoding = "ISO-8859-1") %>%
     mutate(parameter = as.character(parameter),
            unit = as.character(unit))
 
