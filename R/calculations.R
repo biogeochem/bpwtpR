@@ -184,7 +184,7 @@ DO_percent <- function(labdat, datadir = "data/data_tables",
 
   fpath <- file.path(datadir, O2table_file)
 
-  O2Table <- read.csv(fpath) %>%
+  O2Table <- read.csv(fpath, fileEncoding = "ISO-8859-1") %>%
     select(1:2) %>%
     rename(temperature_C = temp_C)
 
