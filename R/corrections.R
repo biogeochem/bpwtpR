@@ -125,7 +125,13 @@ update_parameters <- function(labdat, parameters_file = "parameters.csv",
     filter(is.na(parm_unit)) %>%
     distinct(datasheet, station, parameter, unit) %>%
     arrange(datasheet)
-  print(parm_check)
+
+  if (nrow(parm_check) == 0) {
+    print("Everything good with parameters.")
+  } else {
+    print("Rows for which there exist issues with the parameters:")
+    print.data.frame(parm_check)
+  }
 
   if(isTRUE(data_validation)){
     labdat.updated <- labdat.mod %>%

@@ -23,7 +23,7 @@ percent_yield <- function(pre, post){
 #'
 write_datafile <- function(file, outdir, outfilename){
   outpath <- file.path(outdir, outfilename)
-  print(outpath)
+  sprintf("Writing updated file to: %s", outpath)
   write.csv(x = file, file = outpath, row.names = FALSE, fileEncoding = "ISO-8859-1")
 }
 

@@ -24,6 +24,7 @@ update_database <- function(labdat_file =
   labdat_newfilename <- files[grepl("active", files)]
 
   ## load data
+  print("Loading data...")
   old_data <- read_labdat(datadir = datadir, labdat_file = labdat_file) %>%
     mutate(sheet_year = as.factor(sheet_year),
            month = month(datetime_ymd.hms, label = TRUE),
@@ -41,11 +42,13 @@ update_database <- function(labdat_file =
            result = as.numeric(result), sheet_year = as.factor(sheet_year))
 
   ## select new data
+  print("Selecting new data...")
   database_dates <- unique(old_data$datetime_ymd.hms)
   current_dates <- c(unique(tmp$datetime_ymd.hms), unique(tmp_doc$datetime_ymd.hms))
   current_dates <- current_dates[which(current_dates <= as.POSIXct(Sys.Date()))]
 
 
+  print("Determining data to add...")
   if(!all(database_dates %in% current_dates)){ # are all values false? TRUE = Yes
     # select the dates that are not in the database
     new_dates <- current_dates[which(!(current_dates %in% database_dates))]
@@ -57,8 +60,10 @@ update_database <- function(labdat_file =
     stop("No data to add", call. = T)
   }
 
+
   #print(paste("New dates to be added to database:", new_dates))
 
+  print("Updating parameters...")
   ## update parameter names
   new_data <- update_parameters(new_data)
 
@@ -69,6 +74,7 @@ update_database <- function(labdat_file =
     filter(!parameter %in% operation_dates,
            parameter != "Intake")
 
+  print("Correcting detection limit, removing values calculated in-sheet...")
   ## Correct detection limit and remove values calculated in-sheet
   new_data <- new_data %>%
     filter(parm_eval != "calculated_insheet") %>%
@@ -77,10 +83,13 @@ update_database <- function(labdat_file =
     replace_dl()%>%
     mutate(result = as.numeric(result))
 
+  print("Converting biocounts...")
   new_data <- convert_biocounts(new_data)
+  print("Applying calculations...")
   new_data_calcs <- apply_calculations(new_data %>%
                                          filter(datasheet != "doc_profile"))
 
+  print("Appending new data...")
   new_data <- append_calc_values(new_data, new_data_calcs)
 
   new_data <- new_data %>%
@@ -91,10 +100,15 @@ update_database <- function(labdat_file =
     mutate_if(is.character, as.factor)
 
   labdat_updated <- append_newdata(old_data, new_data)
-  print(c(dim(old_data), dim(new_data), dim(labdat_updated)))
 
+  sprintf("Dimensions of existing data: %d by %d", dim(old_data)[1], dim(old_data)[2])
+  sprintf("Dimensions of new data: %d by %d", dim(new_data)[1], dim(new_data)[2])
+  sprintf("Dimensions of updated data: %d by %d", dim(labdat_updated)[1], dim(labdat_updated)[2])
+
+  print("Creating updated file...")
   write_datafile(file = labdat_updated, outdir = outdir,
                  outfilename = outfilename) ## This will need to be changed to the updated file or saved with the date
 
+  print("Database updated.")
   return(labdat_updated)
 }

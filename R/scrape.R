@@ -78,7 +78,7 @@ scrape_labdatxls <- function(labdat_filename, save_output = FALSE) {
     clearwell_range = "A8:BE266"
   }
 
-  print(rawwater_range); print(clearwell_range)
+  sprintf("Raw water range: %s", rawwater_range)
 
   rawwater <- scrape_rawwater(labdat_filename, rawwater_range = rawwater_range)
   clearwell <- scrape_clearwell(labdat_filename, clearwell_range = clearwell_range)
@@ -86,7 +86,7 @@ scrape_labdatxls <- function(labdat_filename, save_output = FALSE) {
   clearwell_al <- scrape_clearwell_al(labdat_filename, clearwell_range = clearwell_range)
 
   outname <- SplitPath(labdat_filename)$filename
-  print(outname)
+  sprintf("The file %s has been read", outname)
   bp_longterm <- bind_rows(rawwater, clearwell,
                            clearwell_THMs, clearwell_al) %>%
     mutate(sheet_year = substr(outname, start = 1, stop = 4))
@@ -123,8 +123,8 @@ scrape_rawwater <- function(labdat_filename, rawwater_range = "A8:BE130"){
   thms <- c("Chloroform", "Bromodichloromethane",
             "Chlorodibromomethane", "Bromoform")
 
-  rawwater <- read_excel(labdat_filename, sheet = 1, range = rawwater_range,
-                         col_names = TRUE, col_types = NULL) %>%
+  rawwater <- suppressMessages(read_excel(labdat_filename, sheet = 1, range = rawwater_range,
+                         col_names = TRUE, col_types = NULL)) %>%
     filter(Parameters %in% rw_parms_list$Parameters) %>%
     filter(!Parameters %in% c("Langelier Index (RTW)",
                               "Langelier Saturation Index (LSI #2, new as of 2018)",
@@ -179,8 +179,8 @@ scrape_clearwell <- function(labdat_filename, clearwell_range){
                              sheet = "bp_cw_parms_list",
                              col_names = TRUE)
 
-  clearwell <- read_excel(labdat_filename, sheet = 1, range = clearwell_range,
-                          col_names = TRUE, col_types = NULL) %>%
+  clearwell <- suppressMessages(read_excel(labdat_filename, sheet = 1, range = clearwell_range,
+                          col_names = TRUE, col_types = NULL)) %>%
     mutate(rownum = as.numeric(rownames(.))) %>%
     select(rownum, everything()) %>%
     filter(rownum > 122) %>%
@@ -231,8 +231,8 @@ scrape_clearwell_thms <- function(labdat_filename, clearwell_range){
   cw_THMs <- c("Chloroform", "Chlorodibromomethane",
                "Bromodichloromethane", "Bromoform")
 
-  clearwell_THMs <- read_excel(labdat_filename, sheet = 1, range = clearwell_range,
-                               col_names = TRUE, col_types = NULL) %>%
+  clearwell_THMs <- suppressMessages(read_excel(labdat_filename, sheet = 1, range = clearwell_range,
+                               col_names = TRUE, col_types = NULL)) %>%
     mutate(rownum = as.numeric(rownames(.))) %>%
     select(rownum, everything()) %>%
     filter(rownum > 122) %>%
@@ -288,8 +288,8 @@ scrape_clearwell_al <- function(labdat_filename, clearwell_range){
   cw_Al <- c("Aluminum (dissolved 0.45µ)", "Aluminum (total)",
              "Aluminum (dissolved)")
 
-  clearwell_Al <- read_excel(labdat_filename, sheet = 1, range = clearwell_range,
-                             col_names = TRUE, col_types = NULL) %>%
+  clearwell_Al <- suppressMessages(read_excel(labdat_filename, sheet = 1, range = clearwell_range,
+                             col_names = TRUE, col_types = NULL)) %>%
     mutate(rownum = as.numeric(rownames(.))) %>%
     select(rownum, everything()) %>%
     filter(rownum > 122) %>%
@@ -340,9 +340,9 @@ scrape_clearwell_al <- function(labdat_filename, clearwell_range){
 #'
 #' @examples #scrape_docprofiles(labdat_filename)
 scrape_docprofiles <- function(labdat_filename){
-  labdat <- read_excel(labdat_filename,
+  labdat <- suppressMessages(read_excel(labdat_filename,
              sheet = "WTP DOC Profile", range = cell_limits(ul = c(3, 2)),
-             col_names = TRUE)
+             col_names = TRUE))
   labdat <- labdat %>%
     select(c(`Sample Date`:CW...10)) %>%
     select(-`Jar Test`) %>%
