@@ -1,54 +1,97 @@
 #' Calculate percent yield
 #'
-#' @param pre first measurement
-#' @param post last measurement
+#' Calculates the percent yield, equal to (pre-post)/pre*100
 #'
-#' @return
-#' @export
+#' @param pre numeric value. First measurement
+#' @param post numeric value. Last measurement
 #'
-#' @examples
-#' #percent_yield()
+#' @return numeric value. Calculated percent yield
 percent_yield <- function(pre, post){
   yield = ((pre - post)/ pre) * 100
 }
 
-#' Save a labdat data file
+#' Determine which calculated values will are valid
 #'
-#' @param file filename
-#' @param outdir output directory
-#' @param outfilename output file name
+#' Classifies values as NA, NaN, or 999 depending on whether or not the measured
+#' values required for that calculation exist for none, some, or all of the
+#' parameters.
 #'
-#' @return
-#' @export
+#' @param df dataframe containing measured values required for a specific calculation
+#' @param col1 first parameter required for the calculation
+#' @param col2 last parameter required for the calculation
+#' @param include_between boolean value, defaults to TRUE
+#'  Do there exist columns between col1 and col2 that must be examined for the
+#'  existence of valid numbers?
+#'  If FALSE, no columns other than col1 and col2 must be examined.
+#' @param col_name string used to assign a name to the column that stores the
+#'  result of `determine_NA_NC()`. If not specified, column is given the name
+#'  `result`
 #'
-write_datafile <- function(file, outdir, outfilename){
-  outpath <- file.path(outdir, outfilename)
-  sprintf("Writing updated file to: %s", outpath)
-  write.csv(x = file, file = outpath, row.names = FALSE, fileEncoding = "ISO-8859-1")
+#' @return A dataframe identical to the input dataframe with one additional
+#'  column containing the result of `determine_NA_NC()` and named using
+#'  col_name. Values are assigned as follows:
+#'  * When all of the parameters required for the calculation are missing
+#'  values, assign NA
+#'  * When one or more (but not all) of the parameters required for the
+#'  calculation are missing values, assign NaN
+#'  * When all of the parameters required for the calculation are present
+#'  values, assign 999 as a placeholder to indicate that a value should be
+#'  calculated
+determine_NA_NC <- function(df, col1, col2, include_between = F, col_name) {
+
+  if (isTRUE(include_between)) {
+    df <- df %>%
+      # If all of the parameters were not entered (all NA), calculated value = NA
+      mutate(result = ifelse(apply(.[, c(col1:col2)], 1, function(x) all(is.na(x))),
+                             NA,
+                             # If at least 1 of the parameters was not entered (is NA), calculated value = NaN
+                             ifelse(!complete.cases(.[, c(col1:col2)]),
+                                    NaN,
+                                    # Using 999 as a placeholder to indicate that all necessary parameters were entered
+                                    # and we will therefore calculate the value
+                                    999)),
+             result = as.numeric(result))
+  } else {
+    df <- df %>%
+      # If all of the parameters were not entered (all NA), calculated value = NA
+      mutate(result = ifelse(apply(.[, c(col1, col2)], 1, function(x) all(is.na(x))),
+                             NA,
+                             # If at least 1 of the parameters was not entered (is NA), calculated value = NaN
+                             ifelse(!complete.cases(.[, c(col1, col2)]),
+                                    NaN,
+                                    # Using 999 as a placeholder to indicate that all necessary parameters were entered
+                                    # and we will therefore calculate the value
+                                    999)),
+             result = as.numeric(result))
+  }
+
+  if(!missing(col_name)) {
+    colnames(df)[colnames(df) == "result"] <- col_name
+  }
+
+  return(df)
+
 }
 
-#' Add new data to dataset
+#' Add columns
 #'
-#' @param labdat labdat datafile
-#' @param new_data new data file
+#' Add columns that are required for function processing in the case that
+#' required columns are missing from the input dataframe.
 #'
-#' @return
-#' @export
+#' @param df dataframe
+#' @param cols A vector containing the desired columns in the desired order,
+#'  setup as c(colname = NA_real_, colname = NA_real_, ...)
 #'
-append_newdata <- function(labdat, new_data){
-  df <- bind_rows(labdat, new_data)
-  return(df)
-}
+#' @return Dataframe with desired columns in the desired order
+handle_missing_cols <- function(df, cols) {
 
-#' Add calculated values to dataset
-#'
-#' @param labdat labdat datafile
-#' @param labdat_calcs calculated values
-#'
-#' @return
-#' @export
-#'
-append_calc_values <- function(labdat, labdat_calcs){
-  df <- bind_rows(labdat, labdat_calcs)
+  df <- df %>%
+    # For cases where parameters are missing and df is therefore missing columns
+    # from `cols`, add in those columns (fill with NA)
+    add_column(!!!cols[setdiff(names(cols), names(.))]) %>%
+    # If a column was added, columns must be reordered
+    select(rownames(as.data.frame(cols)))
+
   return(df)
+
 }
