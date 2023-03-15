@@ -1,26 +1,29 @@
-#' Read routine lab data file
+#' Read the csv containing the database
 #'
-#' @param datadir data directory
-#' @param labdat_file lab data filename
+#' Read the csv containing all of the processed labdat data, if it exists. If it
+#' does not exist, it will later be created
 #'
-#' @return data table with replaced bdl values
-#' @export
+#' @param path_to_db_file character string. Path to the file that contains the
+#'  database file, or if the file does not yet exist, the desired path to the
+#'  file that will contain the database file
 #'
-#' @importFrom magrittr %>%
-#' @importFrom dplyr mutate
-#' @importFrom utils read.csv
-#'
-#' @examples
-#' # read_labdat(datadir = "data", labdat_file = "BPWTP_labdat.csv")
-read_labdat <- function(datadir = "data",
-                        labdat_file = ""){
+#' @return dataframe containing the database, if it exists, or NULL if it does not
+read_db <- function(path_to_db_file) {
 
-  fpath <- file.path(datadir, labdat_file)
-  labdat <- read.csv(fpath, fileEncoding = "ISO-8859-1")
+  fpath <- file.path(path_to_db_file)
 
-  labdat <- labdat %>%
-    mutate(datetime_ymd.hms = as.POSIXct(datetime_ymd.hms))
+  # The DB does not yet exist
+  if (file.exists(fpath) == FALSE) {
+    labdat <- NULL
+    print("Existing database was not input. Database will be newly created.")
+  } else {
+    labdat <- fpath %>%
+      read.csv(fileEncoding = "ISO-8859-1") %>%
+      mutate(tbl_date_ymd = as.Date(tbl_date_ymd,
+                                    tryFormats = c("%Y-%m-%d", "%Y/%m/%d",
+                                                   "%m/%d/%Y")))
+  }
 
-return(labdat)
+  return(labdat)
 
 }
