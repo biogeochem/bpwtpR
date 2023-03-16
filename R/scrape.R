@@ -13,18 +13,15 @@
 #       i. read_excel() converts sampling dates into numeric values (e.g.,
 #          29220 for 1979-12-31) so they needed to be converted back to ISO
 #          dates via the janitor package.
-#
-# 3. All calculated parameters have been excluded.
-
 
 #' Scrape data from BPWTP routine lab data
 #'
 #' Read in all data contained in the Weekly (1st) sheet of the lab data file.
 #'
-#' @param path_to_labdat_file character string. Path to the lab data file
+#' @inheritParams prepare_labdat
 #'
 #' @return data frame of all the data contained in the Weekly lab data file
-scrape_labdatxls <- function(path_to_labdat_file) {
+scrape_labdatxls <- function(path_to_labdat_file, path_to_parameters) {
 
   spreadsheet <- suppressMessages(read_excel(path_to_labdat_file,
                                              sheet = 1,
@@ -32,11 +29,30 @@ scrape_labdatxls <- function(path_to_labdat_file) {
                                              skip = 7))
   clearwell_start <- which(spreadsheet$Parameters == "CLEAR WELL")
 
-  rawwater        <- scrape_rawwater(spreadsheet, clearwell_start)
-  clearwell       <- scrape_clearwell(spreadsheet, clearwell_start)
-  clearwell_THMs  <- scrape_clearwell_thms(spreadsheet, clearwell_start)
-  clearwell_al    <- scrape_clearwell_al(spreadsheet, clearwell_start)
-  ion_values      <- scrape_ion_values(spreadsheet)
+  labdat_parameters <- read.csv(path_to_parameters,
+                                fileEncoding = "ISO-8859-1",
+                                na.strings = "") %>%
+    mutate(tbl_parameter = as.character(tbl_parameter),
+           tbl_unit = as.character(tbl_unit))
+
+  # To simplify column names while the data frame is being used. Blair wanted
+  # columns to start with _tbl
+  colnames(labdat_parameters) <- str_remove(colnames(labdat_parameters), "tbl_")
+
+  rawwater        <- scrape_rawwater(      spreadsheet,
+                                           clearwell_start,
+                                           labdat_parameters)
+  clearwell       <- scrape_clearwell(     spreadsheet,
+                                           clearwell_start,
+                                           labdat_parameters)
+  clearwell_THMs  <- scrape_clearwell_thms(spreadsheet,
+                                           clearwell_start,
+                                           labdat_parameters)
+  clearwell_al    <- scrape_clearwell_al(  spreadsheet,
+                                           clearwell_start,
+                                           labdat_parameters)
+  ion_values      <- scrape_ion_values(    spreadsheet,
+                                           labdat_parameters)
 
   new_data_weekly <- bind_rows(rawwater, clearwell, clearwell_THMs,
                                clearwell_al, ion_values)
@@ -45,36 +61,39 @@ scrape_labdatxls <- function(path_to_labdat_file) {
 
 }
 
-
 #' Scrape raw water data
 #'
 #' Read in raw water data from the Weekly (1st) sheet of the lab data file.
-#' Identify parameters to read in based on bp_parms_list.xlsx
+#' Identify parameters to read in based on parameters.csv
 #'
 #' @param spreadsheet dataframe. All data in the Weekly sheet of the lab data file
 #' @param clearwell_start numeric value. The start of the Clearwell data as
 #'  indicated by the phrase "CLEAR WELL" in the Parameters column of the Weekly
 #'  data
+#' @param labdat_parameters dataframe. Slightly processed parameters.csv data
 #'
 #' @return data frame of the raw water data
-scrape_rawwater <- function(spreadsheet, clearwell_start){
+scrape_rawwater <- function(spreadsheet, clearwell_start, labdat_parameters) {
 
-  rw_parms_list <- read_excel(path = "./data/bp_parms_list.xlsx",
-                              sheet = "bp_rw_parms_list",
-                              col_names = TRUE)
+  rw_parms_list <- labdat_parameters %>%
+    filter(datasheet == "RawWater",
+           # Ion values are read in separately
+           !grepl("ion sum|% Difference", parameter, ignore.case = TRUE))
 
-  thms <- c("TTHM's (total)", "Chloroform", "Bromodichloromethane",
-            "Chlorodibromomethane", "Bromoform")
+  thms <- rw_parms_list %>%
+    filter(parm_tag == "THM")
 
   rawwater <- spreadsheet %>%
     filter(row_number() < clearwell_start - 1) %>%
-    filter(Parameters %in% rw_parms_list$Parameters) %>%
+    filter(Parameters %in% rw_parms_list$parameter) %>%
     select(!starts_with("...")) %>%
     pivot_longer(cols = -c(Parameters, Units),
                  names_to = "date_ymd", values_to = "result") %>%
     rename(parameter = Parameters, unit = Units) %>%
     mutate(date_ymd = excel_numeric_to_date(as.numeric(date_ymd)),
-           station = as.factor(ifelse(parameter %in% thms |
+           # As directed by Blair. Raw water THMs are only measured at the
+           # PreFM stage
+           station = as.factor(ifelse(parameter %in% thms$parameter |
                                         grepl("PreFM", parameter),
                                       "PreFM","Raw"))) %>%
     filter(!is.na(date_ymd)) %>%
@@ -85,24 +104,27 @@ scrape_rawwater <- function(spreadsheet, clearwell_start){
 
 }
 
-
 #' Scrape Clearwell data
 #'
 #' Read in Clearwell data (excluding THM and Al data). Identify parameters to
-#' read in based on bp_parms_list.xlsx
+#' read in based on parameters.csv
 #'
 #' @inheritParams scrape_rawwater
 #'
 #' @return data frame of the Clearwell data (excluding THMs and Al)
-scrape_clearwell <- function(spreadsheet, clearwell_start){
+scrape_clearwell <- function(spreadsheet, clearwell_start, labdat_parameters) {
 
-  cw_parms_list <- read_excel(path = "./data/bp_parms_list.xlsx",
-                             sheet = "bp_cw_parms_list",
-                             col_names = TRUE)
+  # Aluminum, THMs, and ion values are read in separately
+  cw_parms_list <- labdat_parameters %>%
+    filter(datasheet == "ClearWell",
+           !grepl("^Aluminum \\(", parameter, ignore.case = TRUE),
+           parm_tag  != "THM",
+           !grepl("ion sum|% Difference", parameter, ignore.case = TRUE))
 
+  # based on premise that the aluminum and THMs are NOT read in here
   clearwell <- spreadsheet %>%
     filter(row_number() > clearwell_start) %>%
-    filter(Parameters %in% cw_parms_list$Parameters) %>%
+    filter(Parameters %in% cw_parms_list$parameter) %>%
     select(!starts_with("...")) %>%
     pivot_longer(cols = -c(Parameters, Units),
                  names_to = "date_ymd", values_to = "result") %>%
@@ -130,20 +152,22 @@ scrape_clearwell <- function(spreadsheet, clearwell_start){
 #' Scrape Clearwell THM data
 #'
 #' Read in Clearwell THM data. Identify parameters to read in based on
-#' bp_parms_list.xlsx
+#' parameters.csv
 #'
 #' @inheritParams scrape_rawwater
 #'
 #' @return data frame of the Clearwell THMs data
-scrape_clearwell_thms <- function(spreadsheet, clearwell_start){
+scrape_clearwell_thms <- function(spreadsheet, clearwell_start, labdat_parameters) {
 
-  cw_THMs <- c("TTHM's (total)", "Chloroform", "Chlorodibromomethane",
-               "Bromodichloromethane", "Bromoform")
+  # Expecting consistently 4 THM rows for each of Clearwell, Channel, PreGAC
+  cw_thms_parms_list <- labdat_parameters %>%
+    filter(datasheet == "ClearWell",
+           parm_tag  == "THM")
 
   clearwell_THMs <- spreadsheet %>%
     filter(row_number() > clearwell_start) %>%
     select(!starts_with("...")) %>%
-    filter(Parameters %in% cw_THMs) %>%
+    filter(Parameters %in% cw_thms_parms_list$parameter) %>%
     mutate(station = ifelse(row_number() >= 1 & row_number() <= 5,
                             "Clearwell", NA),
            station = ifelse(row_number() >= 6 & row_number() <= 10,
@@ -167,20 +191,30 @@ scrape_clearwell_thms <- function(spreadsheet, clearwell_start){
 #' Scrape Clearwell aluminum data
 #'
 #' Read in Clearwell aluminum data. Identify parameters to read in based on
-#' bp_parms_list.xlsx
+#' parameters.csv
 #'
 #' @inheritParams scrape_rawwater
 #'
 #' @return data frame of the Clearwell aluminum data
-scrape_clearwell_al <- function(spreadsheet, clearwell_start){
+scrape_clearwell_al <- function(spreadsheet, clearwell_start, labdat_parameters) {
 
-  cw_Al <- c("Aluminum (dissolved 0.45\u00b5)", "Aluminum (total)",
-             "Aluminum (dissolved)", "Aluminum (particulate)")
+  # Expecting parameters that look like:
+  # "Aluminum (dissolved 0.45\u00b5)",
+  # "Aluminum (total)",
+  # "Aluminum (Total)",
+  # "Aluminum (dissolved)",
+  # "Aluminum (particulate)"
+  # Using labdat_parameters instead of hard-coding to account for small typos
+  cw_al_parms_list <- labdat_parameters %>%
+    filter(datasheet == "ClearWell",
+           grepl("^Aluminum \\(", parameter, ignore.case = TRUE))
 
   clearwell_Al <- spreadsheet %>%
     filter(row_number() > clearwell_start) %>%
     select(!starts_with("...")) %>%
-    filter(Parameters %in% cw_Al) %>%
+    filter(Parameters %in% cw_al_parms_list$parameter) %>%
+    # The expected row setup is as follows: 3 Clearwell Al rows, 1 MMF1 Al row,
+    # 1 MMF12 Al row, 2 PreGAC Al rows
     mutate(station = ifelse(row_number() == 1 | row_number() == 2 | row_number() == 3,
                             "Clearwell", NA),
            station = ifelse(row_number() == 4, "MMF1", station),
@@ -211,16 +245,16 @@ scrape_clearwell_al <- function(spreadsheet, clearwell_start){
 #' Scrape ion data
 #'
 #' Read in all ion data. Identify parameters to read in based on
-#' bp_parms_list.xlsx
+#' parameters.csv
 #'
 #' @inheritParams scrape_rawwater
 #'
 #' @return data frame of the ion data
-scrape_ion_values <- function(spreadsheet){
+scrape_ion_values <- function(spreadsheet, labdat_parameters) {
 
-  ions_parms_list <- read_excel(path = "./data/bp_parms_list.xlsx",
-                              sheet = "ions_parms_list",
-                              col_names = TRUE)
+  ions_parms_list <- labdat_parameters %>%
+    filter(datasheet == "ClearWell",
+           grepl("ion sum|% Difference", parameter, ignore.case = TRUE))
 
   # Find where the ion values with silica included begin (desired values)
   silica_included_start     <- first(which(grepl("SILICA ADDED",
@@ -233,7 +267,7 @@ scrape_ion_values <- function(spreadsheet){
     # There exist values with silica included (desired)
     ions <- spreadsheet %>%
       filter(row_number() >= silica_included_start,
-             Parameters %in% ions_parms_list$Parameters) %>%
+             Parameters %in% ions_parms_list$parameter) %>%
       mutate(datasheet = ifelse(row_number() >= 1 & row_number() <= nrow(.)/2,
                               "RawWater",
                               ifelse(row_number() >= nrow(.)/2 + 1 & row_number() <= nrow(.),
