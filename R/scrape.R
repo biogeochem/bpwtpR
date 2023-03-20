@@ -27,7 +27,22 @@ scrape_labdatxls <- function(path_to_labdat_file, path_to_parameters) {
                                              sheet = 1,
                                              col_names = TRUE, col_types = NULL,
                                              skip = 7))
+
+
+  if (colnames(spreadsheet)[1] != "Parameters") {
+    stop(paste0("Issue with weekly data column names. ",
+                "Do column names start on row 8? ",
+                "Is the parameters column correctly named as \"Parameters\"?",
+                "Check file requirements and weekly data."))
+  }
+
   clearwell_start <- which(spreadsheet$Parameters == "CLEAR WELL")
+
+  if (is_empty(clearwell_start)) {
+    stop(paste0("Issue with the start of the Clear Well data. ",
+                "Is the start identified with the string \"CLEAR WELL\"? ",
+                "Check file requirements and weekly data."))
+  }
 
   labdat_parameters <- read.csv(path_to_parameters,
                                 fileEncoding = "ISO-8859-1",
@@ -173,7 +188,15 @@ scrape_clearwell_thms <- function(spreadsheet, clearwell_start, labdat_parameter
            station = ifelse(row_number() >= 6 & row_number() <= 10,
                             "Channel", station),
            station = ifelse(row_number() >= 11 & row_number() <= 15,
-                            "PreGAC", station)) %>%
+                            "PreGAC", station))
+
+  if (nrow(clearwell_THMs) != 15) {
+    stop(paste0("Issue with Clear Well THMs. ",
+                "Too many rows were identified. There should be 15. ",
+                "Check file requirements and weekly data."))
+  }
+
+  clearwell_THMs <- clearwell_THMs %>%
     select(parameter = Parameters, unit = Units, station,
            everything()) %>%
     pivot_longer(cols = -c(parameter, unit, station),
@@ -212,7 +235,15 @@ scrape_clearwell_al <- function(spreadsheet, clearwell_start, labdat_parameters)
   clearwell_Al <- spreadsheet %>%
     filter(row_number() > clearwell_start) %>%
     select(!starts_with("...")) %>%
-    filter(Parameters %in% cw_al_parms_list$parameter) %>%
+    filter(Parameters %in% cw_al_parms_list$parameter)
+
+  if (nrow(clearwell_Al) != 7) {
+    stop(paste0("Issue with Clear Well Aluminum values. ",
+                "Too many rows were identified. There should be 7. ",
+                "Check file requirements and weekly data."))
+  }
+
+  clearwell_Al <- clearwell_Al %>%
     # The expected row setup is as follows: 3 Clearwell Al rows, 1 MMF1 Al row,
     # 1 MMF12 Al row, 2 PreGAC Al rows
     mutate(station = ifelse(row_number() == 1 | row_number() == 2 | row_number() == 3,
@@ -257,8 +288,25 @@ scrape_ion_values <- function(spreadsheet, labdat_parameters) {
            grepl("ion sum|% Difference", parameter, ignore.case = TRUE))
 
   # Find where the ion values with silica included begin (desired values)
+  silica_excluded_start     <- first(which(grepl("SILICA NOT ADDED",
+                                                 spreadsheet$Parameters)))
   silica_included_start     <- first(which(grepl("SILICA ADDED",
                                                  spreadsheet$Parameters)))
+
+  if (is_empty(silica_included_start)) {
+    stop(paste0("Issue with Weekly Data ion values. ",
+                "Could not identify the start of ion values through the phrase ",
+                "`SILICA ADDED` in the Parameters column. ",
+                "Check file requirements and weekly data."))
+  } else if (!is_empty(silica_excluded_start)) {
+    if (silica_excluded_start > silica_included_start) {
+      stop(paste0("Issue with Weekly Data ion values. ",
+                  "Ion values with silica added are located before ion values ",
+                  "without silica. ",
+                  "Check file requirements and weekly data."))
+    }
+  }
+
   if (length(silica_included_start) == 0) {
     # There are no ion values with silica included. We will not store any ions
     # values in the DB
@@ -306,6 +354,13 @@ scrape_docprofiles <- function(path_to_labdat_file){
                                         sheet = "WTP DOC Profile",
                                         range = cell_limits(ul = c(3, 2)),
                                         col_names = TRUE))
+
+  if (!grepl("date", colnames(labdat)[1], ignore.case = TRUE)) {
+    stop(paste0("Issue with DOC Profile sheet. ",
+                "An issue with the column setup was detected. ",
+                "Check file requirements and weekly data."))
+  }
+
   # Need separate line as suppressMessages() is not for use in pipes and
   # options(warn = -1) does not suppress all of the printed messages
   labdat <- select(labdat, date_ymd = 1, contains(c("PreFM", "FM", "Channel")))
