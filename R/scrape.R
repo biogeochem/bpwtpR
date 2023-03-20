@@ -44,9 +44,7 @@ scrape_labdatxls <- function(path_to_labdat_file, path_to_parameters) {
                 "Check file requirements and weekly data."))
   }
 
-  labdat_parameters <- read.csv(path_to_parameters,
-                                fileEncoding = "ISO-8859-1",
-                                na.strings = "") %>%
+  labdat_parameters <- read_xlsx(path_to_parameters) %>%
     mutate(tbl_parameter = as.character(tbl_parameter),
            tbl_unit = as.character(tbl_unit))
 
@@ -79,13 +77,13 @@ scrape_labdatxls <- function(path_to_labdat_file, path_to_parameters) {
 #' Scrape raw water data
 #'
 #' Read in raw water data from the Weekly (1st) sheet of the lab data file.
-#' Identify parameters to read in based on parameters.csv
+#' Identify parameters to read in based on parameters.xlsx
 #'
 #' @param spreadsheet dataframe. All data in the Weekly sheet of the lab data file
 #' @param clearwell_start numeric value. The start of the Clearwell data as
 #'  indicated by the phrase "CLEAR WELL" in the Parameters column of the Weekly
 #'  data
-#' @param labdat_parameters dataframe. Slightly processed parameters.csv data
+#' @param labdat_parameters dataframe. Slightly processed parameters.xlsx data
 #'
 #' @return data frame of the raw water data
 scrape_rawwater <- function(spreadsheet, clearwell_start, labdat_parameters) {
@@ -122,7 +120,7 @@ scrape_rawwater <- function(spreadsheet, clearwell_start, labdat_parameters) {
 #' Scrape Clearwell data
 #'
 #' Read in Clearwell data (excluding THM and Al data). Identify parameters to
-#' read in based on parameters.csv
+#' read in based on parameters.xlsx
 #'
 #' @inheritParams scrape_rawwater
 #'
@@ -167,7 +165,7 @@ scrape_clearwell <- function(spreadsheet, clearwell_start, labdat_parameters) {
 #' Scrape Clearwell THM data
 #'
 #' Read in Clearwell THM data. Identify parameters to read in based on
-#' parameters.csv
+#' parameters.xlsx
 #'
 #' @inheritParams scrape_rawwater
 #'
@@ -214,7 +212,7 @@ scrape_clearwell_thms <- function(spreadsheet, clearwell_start, labdat_parameter
 #' Scrape Clearwell aluminum data
 #'
 #' Read in Clearwell aluminum data. Identify parameters to read in based on
-#' parameters.csv
+#' parameters.xlsx
 #'
 #' @inheritParams scrape_rawwater
 #'
@@ -276,7 +274,7 @@ scrape_clearwell_al <- function(spreadsheet, clearwell_start, labdat_parameters)
 #' Scrape ion data
 #'
 #' Read in all ion data. Identify parameters to read in based on
-#' parameters.csv
+#' parameters.xlsx
 #'
 #' @inheritParams scrape_rawwater
 #'

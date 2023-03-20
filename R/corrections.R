@@ -163,7 +163,7 @@ replace_dl <- function(labdat){
 
 #' Update parameter names and units
 #'
-#' Update parameter names and units as indicated in `parameters.csv`. There
+#' Update parameter names and units as indicated in `parameters.xlsx`. There
 #'  exist inconsistencies between years in parameter names and units, including
 #'  human error. Update to ensure consistency
 #'
@@ -175,11 +175,20 @@ replace_dl <- function(labdat){
 update_parameters <- function(labdat, file_sheet_year,
                               path_to_parameters){
 
-  labdat_parameters <- read.csv(path_to_parameters,
-                                fileEncoding = "ISO-8859-1",
-                                na.strings = "") %>%
+  labdat_parameters <- read_xlsx(path_to_parameters) %>%
     mutate(tbl_parameter = as.character(tbl_parameter),
            tbl_unit = as.character(tbl_unit))
+
+  labdat_parameters_cols <- c("tbl_datasheet",	"tbl_station",	"tbl_parameter",
+                              "tbl_parameter_updated",	"tbl_unit",
+                              "tbl_unit_updated",	"tbl_parm_unit",
+                              "tbl_parm_eval",	"tbl_parm_tag")
+
+  if (!identical(colnames(labdat_parameters, labdat_parameters_cols))) {
+    stop(paste0("Issue with parameters.xlsx input file. ",
+                "Column names have been edited. ",
+                "Check file requirements and parameter data."))
+  }
 
   # To simplify column names while the data frame is being used
   colnames(labdat_parameters) <- str_remove(colnames(labdat_parameters), "tbl_")
@@ -198,7 +207,7 @@ update_parameters <- function(labdat, file_sheet_year,
   } else {
     print("Rows for which there exist issues with the parameters:")
     print.data.frame(parm_check)
-    stop("Check parameters.csv and ensure that these parameters are handled.", call. = T)
+    stop("Check parameters.xlsx and ensure that these parameters are handled.", call. = T)
   }
 
   if (file_sheet_year < 2003) {

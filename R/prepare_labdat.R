@@ -23,10 +23,9 @@
 #' @importFrom janitor excel_numeric_to_date
 #' @importFrom tidyr pivot_longer replace_na pivot_wider
 #' @importFrom utils read.table read.csv write.table write.csv
-#' @importFrom readxl read_excel excel_sheets
+#' @importFrom readxl read_excel excel_sheets read_xlsx
 #' @importFrom data.table setnames
-#' @importFrom stringr str_remove
-#' @importFrom DescTools StrExtract
+#' @importFrom stringr str_remove str_extract str_split
 #' @importFrom stats sd
 #' @importFrom tidyselect all_of starts_with everything contains
 #' @importFrom rlang .data
@@ -47,7 +46,7 @@ prepare_labdat <- function(path_to_labdat_file,
 
   old_data <- read_db(path_to_db_file)
 
-  new_data_weekly <- scrape_labdatxls(path_to_labdat_file) %>%
+  new_data_weekly <- scrape_labdatxls(path_to_labdat_file, path_to_parameters) %>%
     mutate(sheet_year = as.factor(file_sheet_year))
 
   # One of the files has "<1 entered instead of <1 in one of the cells
