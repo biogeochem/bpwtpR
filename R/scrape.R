@@ -23,6 +23,9 @@
 #' @return data frame of all the data contained in the Weekly lab data file
 scrape_labdatxls <- function(path_to_labdat_file, path_to_parameters) {
 
+  # Note that if the number of rows to skip changes, the skip value here must
+  # be changed as well as the skip value and addition used to calculate the
+  # row number within check_missing_params in utilities.R
   spreadsheet <- suppressMessages(read_excel(path_to_labdat_file,
                                              sheet = 1,
                                              col_names = TRUE, col_types = NULL,

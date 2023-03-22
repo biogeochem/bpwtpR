@@ -95,3 +95,58 @@ handle_missing_cols <- function(df, cols) {
   return(df)
 
 }
+
+#' Identify which parameters are missing in parameters.xlsx
+#'
+#' Identify the user that certain rows from the lab data weekly data sheet
+#' are not read in by the script.
+#'
+#' @inheritParams scrape_labdatxls
+#'
+#' @return Print message showing user the next action steps
+check_missing_params <- function(path_to_labdat_file, path_to_parameters) {
+
+  spreadsheet <- suppressMessages(read_excel(path_to_labdat_file,
+                                             sheet = 1,
+                                             col_names = TRUE, col_types = NULL,
+                                             skip = 7)) %>%
+    mutate(`Row Number` = row_number() + 8) %>%
+    select(`Row Number`, Parameters)
+
+  new_data_weekly <- scrape_labdatxls(path_to_labdat_file, path_to_parameters)
+
+  missing_params <- data.frame(
+    Parameters = str_subset(setdiff(spreadsheet$Parameters,
+                                    new_data_weekly$parameter),
+                            "^(([[:upper:]]*\\d*[[:punct:]]*)\\s?)*$",
+                            negate = TRUE)) %>%
+    left_join(spreadsheet, multiple = "all", by = "Parameters") %>%
+    select(`Row Number`, Parameters) %>%
+    arrange(`Row Number`)
+
+  # Usually, section headers are identified by all characters being in CAPS.
+  # These usually can be ignored when determining which Parameters were not read
+  # in, so we separate them from all other missed Parameters
+  missing_params_titles <- data.frame(
+    Parameters = str_subset(setdiff(spreadsheet$Parameters,
+                                    new_data_weekly$parameter),
+                            "^(([[:upper:]]*\\d*[[:punct:]]*)\\s?)*$")) %>%
+    left_join(spreadsheet, multiple = "all", by = "Parameters") %>%
+    select(`Row Number`, Parameters) %>%
+    arrange(`Row Number`)
+
+  if (!is_empty(missing_params) | !is_empty(missing_params_titles)) {
+    print(paste("The following rows listed in the 'Parameters'",
+                "column of the lab data are not read in."))
+    print("These are likely not titles:")
+    print.data.frame(missing_params)
+    print("These might be titles:")
+    print.data.frame(missing_params_titles)
+    print(paste("If there exists a Parameter that is missing from the `RAW",
+                "LAKE WATER` or `CLEAR WELL` sections of the lab data, add",
+                "that parameter into parameters.xlsx and try again. If new",
+                "ion, Clearwell Al, or Clearwell THM values have been added",
+                "you must speak with the creator of this script."))
+  }
+
+}
