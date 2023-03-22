@@ -490,9 +490,7 @@ total_THMs <- function(column_names, labdat) {
 #'  defined in the function description
 DO_percent <- function(column_names, labdat) {
 
-  O2Table <- read.csv("data/data_tables/O2Table.csv", fileEncoding = "ISO-8859-1") %>%
-    select(1:2) %>%
-    rename(temperature_C = "temp_C")
+  O2Table <- bpwtpR:::O2Table
 
   parms <- c("temperature_C", "DO_mg.L")
   # Columns required for proper calculation of df
