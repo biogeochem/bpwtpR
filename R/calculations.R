@@ -80,7 +80,7 @@ apply_calculations <- function(labdat, file_sheet_year){
                                                 "Green Algae"),
                                       station_list = c("Raw"),
                                       fn = tot_B_BG_algae,
-                                      tbl_parameter = "Total Green & B-G",
+                                      tbl_parameter = "Total Green & B-G Algae",
                                       tbl_unit = "per litre",
                                       tbl_parm_unit = "cells.L",
                                       tbl_parm_tag = "biological",
@@ -329,7 +329,7 @@ overall_coag_dose <- function(column_names, labdat, dry_alum_equiv_values) {
                                   case_when(is.na(`PACl Train A`) ~ ((`PACl Train B`*2.07)+Alum)/2,
                                             TRUE ~ ((`PACl Train A`*2.07)+Alum)/2))),
            result = round(result, 1),
-           parameter = "Overall Coag Dose",
+           parameter = "Overall Coagulant Dose",
            unit ="mg/L DAE", parm_unit = "coag_dose_mg.L.DAE",
            parm_eval = "calculated", parm_tag = "operations") %>%
     select(all_of(column_names))
@@ -507,7 +507,7 @@ DO_percent <- function(column_names, labdat) {
     mutate(result = case_when(!is.na(.data$result) ~ DO_mg.L / oxy.sol_mg.L * 100,
                               TRUE ~ .data$result),
            result = round(.data$result, 1),
-           parameter = "Percent DO", unit = "%",
+           parameter = "DO Percent", unit = "%",
            parm_unit = "DO_perc", parm_eval = "calculated",
            parm_tag = "physical") %>%
     select(all_of(column_names))
@@ -716,7 +716,7 @@ removal_coag_filt <- function(column_names, labdat, parameter){
                       ifelse(!is.na(raw_vs_pregac),
                              percent_yield(pre = Raw, post = PreGAC),
                              raw_vs_pregac)),
-           result = round(result, 1),
+           result = round(result, 3),
            datasheet = "Combined Sheets", station = "Combined Stations",
            parm_unit = paste(ifelse(parameter == "Odour", "odour", parameter),
                              "removal_perc", sep = "_"),
@@ -765,7 +765,7 @@ removal_overall <- function(column_names, labdat, parameter){
     determine_NA_NC(3, 4) %>%
     mutate(result = case_when(!is.na(result) ~ percent_yield(pre = Raw, post = Clearwell),
                               TRUE ~ result),
-           result = round(result, 1),
+           result = round(result, 3),
            datasheet = "Combined Sheets", station = "Combined Stations",
            parm_unit = paste(ifelse(parameter == "Odour", "odour", parameter),
                              "removal_perc", sep = "_"),
@@ -815,7 +815,7 @@ removal_GACfilt <- function(column_names, labdat, parameter){
     determine_NA_NC(3, 4) %>%
     mutate(result = case_when(!is.na(result) ~ percent_yield(pre = PreGAC, post = Clearwell),
                               TRUE ~ result),
-           result = round(result, 1),
+           result = round(result, 3),
            datasheet = "Combined Sheets", station = "Combined Stations",
            unit      = "%",
            parm_unit = paste(parameter, "removal_perc", sep = "_"),
