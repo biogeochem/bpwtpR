@@ -104,6 +104,8 @@ handle_missing_cols <- function(df, cols) {
 #' @inheritParams scrape_labdatxls
 #'
 #' @return Print message showing user the next action steps
+#'
+#' @export
 check_missing_params <- function(path_to_labdat_file, path_to_parameters) {
 
   spreadsheet <- suppressMessages(read_excel(path_to_labdat_file,
