@@ -35,8 +35,9 @@ scrape_labdatxls <- function(path_to_labdat_file, path_to_parameters) {
   if (colnames(spreadsheet)[1] != "Parameters") {
     stop(paste0("Issue with weekly data column names. ",
                 "Do column names start on row 8? ",
-                "Is the parameters column correctly named as \"Parameters\"?",
-                "Check file requirements and weekly data."))
+                "Is the parameters column correctly named as \"Parameters\"? ",
+                "Check file requirements and weekly data."),
+         call. = FALSE)
   }
 
   clearwell_start <- which(spreadsheet$Parameters == "CLEAR WELL")
@@ -44,7 +45,8 @@ scrape_labdatxls <- function(path_to_labdat_file, path_to_parameters) {
   if (is_empty(clearwell_start)) {
     stop(paste0("Issue with the start of the Clear Well data. ",
                 "Is the start identified with the string \"CLEAR WELL\"? ",
-                "Check file requirements and weekly data."))
+                "Check file requirements and weekly data."),
+         call. = FALSE)
   }
 
   labdat_parameters <- read_xlsx(path_to_parameters) %>%
@@ -194,7 +196,8 @@ scrape_clearwell_thms <- function(spreadsheet, clearwell_start, labdat_parameter
   if (nrow(clearwell_THMs) != 15) {
     stop(paste0("Issue with Clear Well THMs. ",
                 "Too many rows were identified. There should be 15. ",
-                "Check file requirements and weekly data."))
+                "Check file requirements and weekly data."),
+         call. = FALSE)
   }
 
   clearwell_THMs <- clearwell_THMs %>%
@@ -241,7 +244,8 @@ scrape_clearwell_al <- function(spreadsheet, clearwell_start, labdat_parameters)
   if (nrow(clearwell_Al) != 7) {
     stop(paste0("Issue with Clear Well Aluminum values. ",
                 "Too many rows were identified. There should be 7. ",
-                "Check file requirements and weekly data."))
+                "Check file requirements and weekly data."),
+         call. = FALSE)
   }
 
   clearwell_Al <- clearwell_Al %>%
@@ -289,33 +293,40 @@ scrape_ion_values <- function(spreadsheet, labdat_parameters) {
            grepl("ion sum|% Difference", parameter, ignore.case = TRUE))
 
   # Find where the ion values with silica included begin (desired values)
-  silica_excluded_start     <- first(which(grepl("SILICA NOT ADDED",
-                                                 spreadsheet$Parameters)))
-  silica_included_start     <- first(which(grepl("SILICA ADDED",
-                                                 spreadsheet$Parameters)))
+  silica_excluded_start        <- first(which(grepl("SILICA NOT ADDED",
+                                                    spreadsheet$Parameters)))
+  silica_included_start_rw     <- first(which(grepl("SILICA ADDED",
+                                                    spreadsheet$Parameters)))
+  silica_included_start_cw     <- nth(which(grepl("SILICA ADDED",
+                                                  spreadsheet$Parameters)),
+                                      2)
 
-  if (is_empty(silica_included_start)) {
+
+  if (is.na(silica_included_start_rw) | is.na(silica_included_start_cw)) {
     stop(paste0("Issue with Weekly Data ion values. ",
-                "Could not identify the start of ion values through the phrase ",
-                "`SILICA ADDED` in the Parameters column. ",
-                "Check file requirements and weekly data."))
+                "Could not identify the start of either the raw or Clearwell ",
+                "ion values through the phrase `SILICA ADDED` in the ",
+                "Parameters column. ",
+                "Check file requirements and weekly data."),
+         call. = FALSE)
   } else if (!is_empty(silica_excluded_start)) {
-    if (silica_excluded_start > silica_included_start) {
+    if (silica_excluded_start > silica_included_start_rw) {
       stop(paste0("Issue with Weekly Data ion values. ",
                   "Ion values with silica added are located before ion values ",
                   "without silica. ",
-                  "Check file requirements and weekly data."))
+                  "Check file requirements and weekly data."),
+           call. = FALSE)
     }
   }
 
-  if (length(silica_included_start) == 0) {
+  if (length(silica_included_start_rw) == 0) {
     # There are no ion values with silica included. We will not store any ions
     # values in the DB
     ions <- as.data.frame(NULL)
   } else {
     # There exist values with silica included (desired)
     ions <- spreadsheet %>%
-      filter(row_number() >= silica_included_start,
+      filter(row_number() >= silica_included_start_rw,
              Parameters %in% ions_parms_list$parameter) %>%
       mutate(datasheet = ifelse(row_number() >= 1 & row_number() <= nrow(.)/2,
                               "RawWater",
@@ -359,7 +370,8 @@ scrape_docprofiles <- function(path_to_labdat_file){
   if (!grepl("date", colnames(labdat)[1], ignore.case = TRUE)) {
     stop(paste0("Issue with DOC Profile sheet. ",
                 "An issue with the column setup was detected. ",
-                "Check file requirements and weekly data."))
+                "Check file requirements and weekly data."),
+         call. = FALSE)
   }
 
   # Need separate line as suppressMessages() is not for use in pipes and
