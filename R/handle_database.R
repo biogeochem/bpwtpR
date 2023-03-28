@@ -13,7 +13,7 @@
 #' @importFrom purrr map
 create_database <- function(path_to_labdat_dir,
                             path_to_db_file,
-                            path_to_processed_labdat_dir) {
+                            path_to_parameters) {
 
   # Want files that don't start with ~ as these are not useable files
   path_to_labdat_files <- list.files(path = path_to_labdat_dir,
@@ -23,7 +23,7 @@ create_database <- function(path_to_labdat_dir,
   map(path_to_labdat_files,
       prepare_labdat,
       path_to_db_file,
-      path_to_processed_labdat_dir)
+      path_to_parameters)
 
 }
 
@@ -35,11 +35,10 @@ create_database <- function(path_to_labdat_dir,
 #'  into the database file
 #' @export
 update_database <- function(path_to_labdat_file,
-                            path_to_db_file,
-                            path_to_processed_labdat_dir) {
+                            path_to_db_file) {
 
   prepare_labdat(path_to_labdat_file,
                  path_to_db_file,
-                 path_to_processed_labdat_dir)
+                 path_to_parameters)
 
 }
