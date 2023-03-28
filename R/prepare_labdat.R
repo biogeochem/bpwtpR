@@ -18,23 +18,26 @@
 #' @importFrom tibble add_column
 #' @importFrom lubridate as_datetime year month day yday week
 #' @importFrom dplyr case_when distinct filter first mutate rename row_number
-#'  select mutate_if left_join group_by summarise arrange bind_rows last
+#'  select mutate_if left_join group_by summarise arrange bind_rows last nth
 #' @importFrom stats complete.cases
 #' @importFrom janitor excel_numeric_to_date
 #' @importFrom tidyr pivot_longer replace_na pivot_wider
 #' @importFrom utils read.table read.csv write.table write.csv
 #' @importFrom readxl read_excel excel_sheets read_xlsx
 #' @importFrom data.table setnames
-#' @importFrom stringr str_remove str_extract str_split
+#' @importFrom stringr str_remove str_extract str_split str_subset
 #' @importFrom stats sd
 #' @importFrom tidyselect all_of starts_with everything contains
-#' @importFrom rlang .data
+#' @importFrom rlang .data is_empty
 #' @importFrom cellranger cell_limits
 #'
 prepare_labdat <- function(path_to_labdat_file,
                            path_to_db_file,
-                           path_to_processed_labdat_dir,
                            path_to_parameters) {
+
+  # Have issues occasionally with R giving values in scientific notation. Not
+  # desired for the sake of consistency
+  options(scipen = 999)
 
   file_sheet_year <- str_extract(last(unlist(str_split(path_to_labdat_file,
                                                        "/"))),
@@ -114,7 +117,8 @@ prepare_labdat <- function(path_to_labdat_file,
   new_data <- rbind(new_data_weekly, new_data_doc)
 
   if (nrow(new_data) == 0) {
-    stop("No data to add", call. = T)
+    stop("Database file is already updated. There is no data to add. Cancelling update.",
+         call. = FALSE)
   } else {
     print("There exists data to add to the database. Processing...")
   }
@@ -189,11 +193,11 @@ prepare_labdat <- function(path_to_labdat_file,
     rbind(new_data_calcs)
 
   new_data <- new_data %>%
-    mutate(year  = lubridate::year(date_ymd),
-           month = lubridate::month(date_ymd, label = TRUE),
-           day   = lubridate::day(date_ymd),
-           day_num   = lubridate::yday(date_ymd),
-           week_num  = lubridate::week(date_ymd)) %>%
+    mutate(year  = year(date_ymd),
+           month = month(date_ymd, label = TRUE),
+           day   = day(date_ymd),
+           day_num   = yday(date_ymd),
+           week_num  = week(date_ymd)) %>%
     select(datasheet:date_ymd, year:week_num, parameter:result_flag) %>%
     mutate_if(is.character, as.factor)
 
@@ -207,11 +211,6 @@ prepare_labdat <- function(path_to_labdat_file,
 
   # Blair would like DB colnames to start with "tbl_"
   colnames(new_data) <- paste("tbl", colnames(new_data), sep = "_")
-
-  write.csv(new_data,
-            path_to_processed_labdat_dir,
-            row.names = FALSE,
-            fileEncoding = "ISO-8859-1")
 
   # write.table() allows us to append the new data, rather than re-writing all
   # of the data to the file
