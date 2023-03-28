@@ -2,27 +2,23 @@
 % Please edit documentation in R/corrections.R
 \name{update_parameters}
 \alias{update_parameters}
-\title{Update parameters to consistent naming convention}
+\title{Update parameter names and units}
 \usage{
-update_parameters(
-  labdat,
-  parameters_file = "parameters.csv",
-  data_validation = FALSE
-)
+update_parameters(labdat, file_sheet_year, path_to_parameters)
 }
 \arguments{
-\item{labdat}{routine lab data file}
+\item{labdat}{dataframe containing the parsed lab data}
 
-\item{parameters_file}{name of parameters file}
+\item{file_sheet_year}{numeric value indicating the sheet year}
 
-\item{data_validation}{option for data validation. Produces data table with extended column names for verification.}
+\item{path_to_parameters}{string. Path to the .xlsx file that contains the
+desired parameters and associated info (station, units, corrected units...)}
 }
 \value{
-data frame with updated parameter names
+data frame with updated parameter name, unit, and parm_unit
 }
 \description{
-Update parameters to consistent naming convention
-}
-\examples{
-# update_parameters(labdat = labdat, parameters_file = "parameters.csv")
+Update parameter names and units as indicated in \code{parameters.xlsx}. There
+exist inconsistencies between years in parameter names and units, including
+human error. Update to ensure consistency
 }

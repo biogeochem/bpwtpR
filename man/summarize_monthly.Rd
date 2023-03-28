@@ -10,7 +10,7 @@ summarize_monthly(labdat)
 \item{labdat}{labdat data file}
 }
 \value{
-
+dataframe. Data summarized by month
 }
 \description{
 Summarize data by month

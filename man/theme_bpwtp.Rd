@@ -12,7 +12,7 @@ theme_bpwtp(base_size = 8, base_family = "")
 \item{base_family}{font family}
 }
 \value{
-
+theme
 }
 \description{
 BPWTP theme

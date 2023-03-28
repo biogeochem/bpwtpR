@@ -2,16 +2,21 @@
 % Please edit documentation in R/calculations.R
 \name{apply_calculations}
 \alias{apply_calculations}
-\title{Apply weekly calculations}
+\title{Calculate all values}
 \usage{
-apply_calculations(labdat)
+apply_calculations(labdat, file_sheet_year)
 }
 \arguments{
-\item{labdat}{routine lab dat file}
+\item{labdat}{dataframe containing the parsed lab data}
+
+\item{file_sheet_year}{numeric value indicating the sheet year}
 }
 \value{
-calculated values
+dataframe containing all calculated values. Note that the results of
+\code{determine_NA_NC()} are employed, and that parameters for which a value
+cannot be calculated are assigned NA or NaN, as defined in the function
+description
 }
 \description{
-Apply weekly calculations
+Calculate desired values
 }

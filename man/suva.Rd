@@ -7,11 +7,11 @@
 suva(labdat)
 }
 \arguments{
-\item{labdat}{data}
+\item{labdat}{dataframe containing the parsed lab data}
 }
 \value{
-calculated suva values
+numeric vector. The calculated values
 }
 \description{
-Calculate SUVA
+Calculate SUVA, equal to (UV254)*100/DOC
 }

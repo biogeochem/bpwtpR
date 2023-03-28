@@ -2,16 +2,23 @@
 % Please edit documentation in R/calculations.R
 \name{langelier_SatIndex}
 \alias{langelier_SatIndex}
-\title{Calculate langelier saturation indeces}
+\title{Calculate the LSI
+Calculate the Langelier Saturation Indices 1 and 2}
 \usage{
-langelier_SatIndex(labdat)
+langelier_SatIndex(column_names, labdat)
 }
 \arguments{
-\item{labdat}{routine lab data}
+\item{column_names}{constant string vector. The desired column names in order}
+
+\item{labdat}{dataframe containing the parsed lab data}
 }
 \value{
-calculated lsi values
+dataframe containing all required columns, including the calculated
+result. Note that the results of \code{determine_NA_NC()} are employed, and that
+parameters for which a value cannot be calculated are assigned NA or NaN, as
+defined in the function description
 }
 \description{
-Calculate langelier saturation indeces
+Calculate the LSI
+Calculate the Langelier Saturation Indices 1 and 2
 }

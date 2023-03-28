@@ -21,7 +21,7 @@ historical_extremes(
 \item{by_month}{collate data by month (T) or by year (F)}
 }
 \value{
-
+dataframe. Historical extremes
 }
 \description{
 Calculate historical extremes

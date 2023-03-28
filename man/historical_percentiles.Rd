@@ -15,14 +15,16 @@ historical_percentiles(
 \arguments{
 \item{df}{dataframe for analysis}
 
+\item{percentiles}{vector. Desired percentiles. Defaults to c(0.1, .25, .50, .75, .9)}
+
 \item{sampling_station}{sampling location}
 
-\item{grouping}{operational metric}
+\item{grouping}{string. operational metric. parm_tag to filter by}
 
 \item{by_month}{collate data by month (T) or by year (F)}
 }
 \value{
-
+dataframe. Historical percentages
 }
 \description{
 Calculate historical percentages

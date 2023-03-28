@@ -11,12 +11,12 @@ historical_basics(df = "", sampling_station = "", grouping = "", by_month = T)
 
 \item{sampling_station}{sampling location}
 
-\item{grouping}{operational metric}
+\item{grouping}{string. operational metric. parm_tag to filter by}
 
 \item{by_month}{collate data by month (T) or by year (F)}
 }
 \value{
-
+dataframe. Historical stats
 }
 \description{
 Calculate historical stats

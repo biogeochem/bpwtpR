@@ -2,16 +2,22 @@
 % Please edit documentation in R/corrections.R
 \name{replace_dl}
 \alias{replace_dl}
-\title{Replace all values above and below detection limit}
+\title{Handle values above and below detection limit, asterisked data}
 \usage{
 replace_dl(labdat)
 }
 \arguments{
-\item{labdat}{}
+\item{labdat}{dataframe containing the parsed lab data}
 }
 \value{
-
+dataframe containing the parsed lab data where the result column and
+flag column are altered as specified above
 }
 \description{
-Replace all values above and below detection limit
+Handle values as defined below:
+\itemize{
+\item If value contains \code{<}, value is below detection limit. Flag and replace with 0
+\item If value contains \code{>}, value is above detection limit. Flag and replace with NA
+\item If value contains an asterisk, value is flagged with \code{mod} and replaced with NA
+}
 }

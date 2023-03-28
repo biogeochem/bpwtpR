@@ -2,28 +2,23 @@
 % Please edit documentation in R/calculations.R
 \name{DO_percent}
 \alias{DO_percent}
-\title{Bench Dissolved Oxygen (\%) (Percent Saturation DO) Calculation (Raw Water & Clearwell)}
+\title{Calculate percent DO
+Calculate the precent dissolved oxygen, equal to DO/oxygen solubility*100}
 \usage{
-DO_percent(labdat, datadir = "data/data_tables", O2table_file = "O2Table.csv")
+DO_percent(column_names, labdat)
 }
 \arguments{
-\item{labdat}{Weekly routine sampling data.}
+\item{column_names}{constant string vector. The desired column names in order}
 
-\item{O2table_file}{Table of oxygen solubilities in water.}
+\item{labdat}{dataframe containing the parsed lab data}
 }
 \value{
-Dataframe containing datasheet (RawWater, ClearWell), station (Raw,
-Clearwell), datetimes, parameter (DO_percent), and result (DO
-concentration expressed as a percentage).
+dataframe containing all required columns, including the calculated
+result. Note that the results of \code{determine_NA_NC()} are employed, and that
+parameters for which a value cannot be calculated are assigned NA or NaN, as
+defined in the function description
 }
 \description{
-Calculates dissolved oxygen concentration (\%).
-Measured dissolved oxygen concentration (mg/L) is divided by the
-saturation concentration of oxygen at the water temperature the sample
-was collected at. This value is multiplied by 100 to express as a
-percentage. The saturation of DO is determined from an oxygen solubility
-table.
-}
-\details{
-Dissolved Oxygen (\%) = Bench Diss. Oxygen (mg/L) ÷ Oxygen Solubility (mg/L) * 100.
+Calculate percent DO
+Calculate the precent dissolved oxygen, equal to DO/oxygen solubility*100
 }

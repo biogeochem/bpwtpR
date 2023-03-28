@@ -7,6 +7,10 @@ Authors@R: c(
            role = c("aut", "cre"),
            email = "mlarsen@wlu.ca",
            comment = c(ORCID = "0000-0002-4155-1293")),
+    person(given = "Lana J.",
+           family = "Vuleta",
+           role = c("aut"),
+           email = "lana.j.vuleta@gmail.com"),
     person(given = "Anthony A. P.",
            family = "Baron",
            role = c("aut"),
@@ -25,27 +29,34 @@ Authors@R: c(
            email = "jvenkiteswaran@wlu.ca",
            comment = c(ORCID = "0000-0002-6574-7071")))
 Description: BPWTP_labdat scrapes historical data, continuously updates the database with new information, and builds reports.
-License: `use_mit_license()`, `use_gpl3_license()` or friends to
-    pick a license
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 Imports: 
+    cellranger,
+    cowplot (>= 1.0.0),
+    data.table,
     dplyr (>= 0.8.5),
     ggplot2 (>= 3.3.0),
-    cowplot (>= 1.0.0),
-    tidyr (>= 1.0.0),
+    janitor,
+    lubridate,
     magrittr,
-	DescTools,
-	janitor,
-	pander,
-	readxl,
-	tibble,
-	lubridate,
-	purrr
-RoxygenNote: 7.1.1
-Suggests: 
+    pander,
+    purrr,
+    readxl,
+    rlang,
     rmarkdown,
+    scales,
+    stringr,
+    tibble,
+    tidyr (>= 1.0.0),
+    tidyselect,
+    utils
+RoxygenNote: 7.2.3
+Suggests: 
     knitr,
     testthat (>= 2.1.0)
 VignetteBuilder: knitr
+Depends: 
+    R (>= 2.10)

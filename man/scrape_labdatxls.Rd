@@ -2,22 +2,20 @@
 % Please edit documentation in R/scrape.R
 \name{scrape_labdatxls}
 \alias{scrape_labdatxls}
-\title{Scrape data from BPWTP routine lab data (\code{.xls})}
+\title{Scrape data from BPWTP routine lab data}
 \usage{
-scrape_labdatxls(labdat_filename, save_output = FALSE)
+scrape_labdatxls(path_to_labdat_file, path_to_parameters)
 }
 \arguments{
-\item{labdat_filename}{file name for routine lab data \code{.xls} file}
+\item{path_to_labdat_file}{string. Path to the lab data file to be inserted
+into the database file}
 
-\item{save_output}{Toggled option to save data output}
+\item{path_to_parameters}{string. Path to the .xlsx file that contains the
+desired parameters and associated info (station, units, corrected units...)}
 }
 \value{
-data frame of scraped data from an individual sheet
+data frame of all the data contained in the Weekly lab data file
 }
 \description{
-Scrape data from BPWTP routine lab data (\code{.xls})
-}
-\examples{
-# scrape_labdatxls(labdat_filename = "routinelabdat_2019.xls",
-save_output = FALSE)
+Read in all data contained in the Weekly (1st) sheet of the lab data file.
 }

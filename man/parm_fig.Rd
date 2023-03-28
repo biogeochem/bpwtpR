@@ -2,9 +2,9 @@
 % Please edit documentation in R/figures.R
 \name{parm_fig}
 \alias{parm_fig}
-\title{Plot parameter figure with trend and boxplot distribution}
+\title{Plot parameter}
 \usage{
-parm_fig(df = "", year_select = "", var = "", outdir = "output")
+parm_fig(df = "", year_select = "", var = "", outdir)
 }
 \arguments{
 \item{df}{dataset}
@@ -16,11 +16,8 @@ parm_fig(df = "", year_select = "", var = "", outdir = "output")
 \item{outdir}{location to save output}
 }
 \value{
-
+ggplot
 }
 \description{
 Plot parameter figure with trend and boxplot distribution
-}
-\examples{
-#
 }

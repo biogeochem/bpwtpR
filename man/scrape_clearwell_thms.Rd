@@ -2,21 +2,23 @@
 % Please edit documentation in R/scrape.R
 \name{scrape_clearwell_thms}
 \alias{scrape_clearwell_thms}
-\title{Scrape clearwell total halomethanes (thms) data from \code{.xls} file}
+\title{Scrape Clearwell THM data}
 \usage{
-scrape_clearwell_thms(labdat_filename, clearwell_range)
+scrape_clearwell_thms(spreadsheet, clearwell_start, labdat_parameters)
 }
 \arguments{
-\item{labdat_filename}{file name for routine lab data \code{.xls} file}
+\item{spreadsheet}{dataframe. All data in the Weekly sheet of the lab data file}
 
-\item{clearwell_range}{excel range for clearwell data}
+\item{clearwell_start}{numeric value. The start of the Clearwell data as
+indicated by the phrase "CLEAR WELL" in the Parameters column of the Weekly
+data}
+
+\item{labdat_parameters}{dataframe. Slightly processed parameters.xlsx data}
 }
 \value{
-scraped clearwell thms data
+data frame of the Clearwell THMs data
 }
 \description{
-Scrape clearwell total halomethanes (thms) data from \code{.xls} file
-}
-\examples{
-# scrape_clearwell_thms(labdat_filename = "routinelabdata_2019.xls")
+Read in Clearwell THM data. Identify parameters to read in based on
+parameters.xlsx
 }

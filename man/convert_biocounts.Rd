@@ -7,11 +7,13 @@
 convert_biocounts(labdat)
 }
 \arguments{
-\item{labdat}{labdat file}
+\item{labdat}{dataframe containing the parsed lab data}
 }
 \value{
-converted values
+dataframe containing the parsed lab data with the required biological
+data values and units converted to per L as required
 }
 \description{
-Convert biological data
+Identifies biological values stored in per mL by identifying \code{10^-3} in the
+parameters name and converts the values to per L by multiplying by 1000.
 }

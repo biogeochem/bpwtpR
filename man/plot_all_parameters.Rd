@@ -2,14 +2,16 @@
 % Please edit documentation in R/figures.R
 \name{plot_all_parameters}
 \alias{plot_all_parameters}
-\title{Plot all possible parameters}
+\title{Plot all parameters}
 \usage{
 plot_all_parameters(
   df,
   year_select = "",
-  parameter_group = c("physical", "biological", "bacteriological",
-    "major_constituents", "trace_constituents", "operations", "all"),
-  station_list = c("Raw", "PreFM", "Channel", "PreGAC", "Clearwell", "all")
+  parameter_group = c("physical", "biological", "bacteriological", "majorConstituents",
+    "traceConstituents", "operations", "THM", "all"),
+  station_list = c("Raw", "Clearwell", "PreGAC", "PreFM", "FM", "Channel", "Channel 1",
+    "Channel 2", "MMF1", "MMF12", "MMFA", "MMFL", "Combined Stations", "all"),
+  outdir
 )
 }
 \arguments{
@@ -20,13 +22,12 @@ plot_all_parameters(
 \item{parameter_group}{data grouping}
 
 \item{station_list}{station}
+
+\item{outdir}{string. Path to the directory in which to save plot pngs}
 }
 \value{
-
+ggplot
 }
 \description{
 Plot all possible parameters
-}
-\examples{
-#
 }

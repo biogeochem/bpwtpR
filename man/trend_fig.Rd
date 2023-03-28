@@ -2,7 +2,7 @@
 % Please edit documentation in R/figures.R
 \name{trend_fig}
 \alias{trend_fig}
-\title{Plot parameter yearly trend}
+\title{Plot yearly trend}
 \usage{
 trend_fig(df = "", year_select = "", var = "")
 }
@@ -14,7 +14,7 @@ trend_fig(df = "", year_select = "", var = "")
 \item{var}{variable of interest}
 }
 \value{
-
+ggplot
 }
 \description{
 Plot parameter yearly trend

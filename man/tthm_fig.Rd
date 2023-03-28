@@ -2,7 +2,7 @@
 % Please edit documentation in R/figures.R
 \name{tthm_fig}
 \alias{tthm_fig}
-\title{tTHM figure}
+\title{Plot tTHM}
 \usage{
 tthm_fig(df = "thms", year_select = "")
 }
@@ -12,8 +12,8 @@ tthm_fig(df = "thms", year_select = "")
 \item{year_select}{year of interest}
 }
 \value{
-
+ggplot
 }
 \description{
-tTHM figure
+Plot total trihalomethanes
 }

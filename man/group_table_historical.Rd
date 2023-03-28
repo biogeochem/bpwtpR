@@ -15,13 +15,15 @@ group_table_historical(
 )
 }
 \arguments{
-\item{df}{dataframe}
+\item{df}{dataframe. Data for table, Default: ''}
 
-\item{year_select}{year of interest}
+\item{year_select}{numeric. Desired year, Default: NULL}
 
-\item{grouping}{operational grouping}
+\item{grouping}{string. data grouping, Default:
+c("operation", "physical", "majorConstituents", "traceConstituents",
+"THM", "biological", "bacteriological")}
 
-\item{sampling_station}{sampling location}
+\item{sampling_station}{string. Sampling location, Default: ''}
 
 \item{percentiles}{percentiles of interest}
 
@@ -30,7 +32,7 @@ group_table_historical(
 \item{month_select}{month of interest}
 }
 \value{
-
+dataframe
 }
 \description{
 Build table with historical values

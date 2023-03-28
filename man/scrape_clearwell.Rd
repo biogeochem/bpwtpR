@@ -2,21 +2,23 @@
 % Please edit documentation in R/scrape.R
 \name{scrape_clearwell}
 \alias{scrape_clearwell}
-\title{Scrape clearwell data from \code{.xls} file}
+\title{Scrape Clearwell data}
 \usage{
-scrape_clearwell(labdat_filename, clearwell_range)
+scrape_clearwell(spreadsheet, clearwell_start, labdat_parameters)
 }
 \arguments{
-\item{labdat_filename}{file name for routine lab data \code{.xls} file}
+\item{spreadsheet}{dataframe. All data in the Weekly sheet of the lab data file}
 
-\item{clearwell_range}{excel cell range in file}
+\item{clearwell_start}{numeric value. The start of the Clearwell data as
+indicated by the phrase "CLEAR WELL" in the Parameters column of the Weekly
+data}
+
+\item{labdat_parameters}{dataframe. Slightly processed parameters.xlsx data}
 }
 \value{
-scraped clearwell data
+data frame of the Clearwell data (excluding THMs and Al)
 }
 \description{
-Scrape clearwell data from \code{.xls} file
-}
-\examples{
-# scrape_clearwell(labdat_filename = "routinelabdata_2019.xls")
+Read in Clearwell data (excluding THM and Al data). Identify parameters to
+read in based on parameters.xlsx
 }

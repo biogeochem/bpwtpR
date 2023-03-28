@@ -2,16 +2,37 @@
 % Please edit documentation in R/calculations.R
 \name{ion_balance}
 \alias{ion_balance}
-\title{Calculate ion balance}
+\title{Calculate the ion balance
+Calculate the ion balance, equal to:
+\itemize{
+\item anion sum = Sulphate\*0.0208 + Chloride\*0.0282 + Bicarbonate\*0.0164 +
+Carbonate\*0.0333
+\item cation sum = Calcium\*0.0499 + Magnesium\*0.0822 + Sodium\*0.0435 +
+Potassium\*0.0256 + Silica\*0.02629
+\item ion percent difference = (cation sum - anion sum)/(cation sum + anion sum)\*100
+}}
 \usage{
-ion_balance(labdat)
+ion_balance(column_names, labdat)
 }
 \arguments{
-\item{labdat}{routine labdat}
+\item{column_names}{constant string vector. The desired column names in order}
+
+\item{labdat}{dataframe containing the parsed lab data}
 }
 \value{
-calculated ion balance
+dataframe containing all required columns, including the calculated
+result. Note that the results of \code{determine_NA_NC()} are employed, and that
+parameters for which a value cannot be calculated are assigned NA or NaN, as
+defined in the function description
 }
 \description{
-Calculate ion balance
+Calculate the ion balance
+Calculate the ion balance, equal to:
+\itemize{
+\item anion sum = Sulphate\*0.0208 + Chloride\*0.0282 + Bicarbonate\*0.0164 +
+Carbonate\*0.0333
+\item cation sum = Calcium\*0.0499 + Magnesium\*0.0822 + Sodium\*0.0435 +
+Potassium\*0.0256 + Silica\*0.02629
+\item ion percent difference = (cation sum - anion sum)/(cation sum + anion sum)\*100
+}
 }

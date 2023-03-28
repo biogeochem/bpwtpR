@@ -4,17 +4,15 @@
 \alias{scrape_docprofiles}
 \title{Scrape DOC profiles}
 \usage{
-scrape_docprofiles(labdat_filename)
+scrape_docprofiles(path_to_labdat_file)
 }
 \arguments{
-\item{labdat_filename}{provided file name for the active data file}
+\item{path_to_labdat_file}{string. Path to the lab data file to be inserted
+into the database file}
 }
 \value{
-
+data frame of the DOC profile data
 }
 \description{
-Scrape DOC profiles
-}
-\examples{
-#scrape_docprofiles(labdat_filename)
+Read in DOC profile data
 }

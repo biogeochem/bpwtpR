@@ -6,27 +6,26 @@
 \usage{
 summarize_monthly_table(
   df = "",
-  grouping = c("operation", "physical", "majorConstituents", "traceConstituents",
-    "THM", "biological", "bacteriological"),
+  grouping = c("operations", "physical", "majorConstituents", "traceConstituents", "THM",
+    "biological", "bacteriological"),
   sampling_station = "",
   year_select = NULL
 )
 }
 \arguments{
-\item{df}{data for table}
+\item{df}{dataframe. Data for table, Default: ''}
 
-\item{grouping}{data grouping}
+\item{grouping}{string. data grouping, Default:
+c("operation", "physical", "majorConstituents", "traceConstituents",
+"THM", "biological", "bacteriological")}
 
-\item{sampling_station}{sampling location}
+\item{sampling_station}{string. Sampling location, Default: ''}
 
-\item{year_select}{year of interest}
+\item{year_select}{numeric. Desired year, Default: NULL}
 }
 \value{
-
+dataframe
 }
 \description{
 Build monthly summary table
-}
-\examples{
-#
 }
