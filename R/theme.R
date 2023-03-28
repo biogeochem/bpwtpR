@@ -3,8 +3,9 @@
 #' @param base_size font size
 #' @param base_family font family
 #'
-#' @return
+#' @return theme
 #'
+#' @import ggplot2
 theme_bpwtp <-  function(base_size = 8,
                           base_family = "") {
   ggplot2::"%+replace%"(
