@@ -2,20 +2,37 @@
 #'
 #' @param labdat labdat data file
 #'
+#' @return dataframe. Data summarized by month
+#'
 #' @importFrom dplyr mutate group_by summarize
 #' @importFrom magrittr %>%
 #' @importFrom lubridate month
-#'
-#' @return
-#' @export
 summarize_monthly <- function(labdat){
 
   df.monthly <- labdat %>%
-    mutate(month = month(datetime_ymd.hms, label = T, abbr = T)) %>%
     group_by(station, unit, year, month, parm_tag, parameter) %>%
-    summarize('Monthly Mean' = mean(result, na.rm = TRUE))
+    summarize(monthly_mean = mean(result, na.rm = TRUE))
 
   return(as.data.frame(df.monthly))
+
+}
+
+#' Summarize trihalomethanes for figure TBD
+#'
+#' @param labdat labdat data file
+#'
+#' @return dataframe. THM data summarized
+#'
+#' @importFrom dplyr filter group_by mutate
+#' @importFrom magrittr %>%
+summarize_THM <- function(labdat) {
+
+  thms <- labdat %>%
+    filter(parm_tag == "THM") %>%
+    group_by(station, date_ymd) %>%
+    mutate(TTHMs = sum(result)) %>%
+    group_by(parm_unit) %>%
+    mutate(hist.max = max(result), hist.min = min(result))
 
 }
 
@@ -26,11 +43,10 @@ summarize_monthly <- function(labdat){
 #' @param grouping operational metric
 #' @param by_month collate data by month (T) or by year (F)
 #'
+#' @return dataframe. Historical extremes
+#'
 #' @importFrom dplyr filter group_by summarize
 #' @importFrom magrittr %>%
-#'
-#' @return
-#' @export
 historical_extremes <- function(df = "", sampling_station = "",
                                 grouping = "", by_month = T){
   if(by_month == T){
@@ -49,20 +65,20 @@ historical_extremes <- function(df = "", sampling_station = "",
 
 }
 
-
 #' Calculate historical percentages
 #'
 #' @param df dataframe for analysis
+#' @param percentiles vector. Desired percentiles. Defaults to c(0.1, .25, .50, .75, .9)
 #' @param sampling_station sampling location
-#' @param grouping operational metric
+#' @param grouping string. operational metric. parm_tag to filter by
 #' @param by_month collate data by month (T) or by year (F)
+#'
+#' @return dataframe. Historical percentages
+#' @export
 #'
 #' @importFrom purrr map_chr map set_names partial
 #' @importFrom dplyr filter group_by summarize_at
 #' @importFrom magrittr %>%
-#'
-#' @return
-#' @export
 historical_percentiles <- function(df = "", percentiles = c(0.1, .25, .50, .75, .9),
                                    sampling_station = "", grouping = "",
                                    by_month = T){
@@ -94,14 +110,14 @@ historical_percentiles <- function(df = "", percentiles = c(0.1, .25, .50, .75, 
 #'
 #' @param df dataframe for analysis
 #' @param sampling_station sampling location
-#' @param grouping operational metric
+#' @param grouping string. operational metric. parm_tag to filter by
 #' @param by_month collate data by month (T) or by year (F)
 #'
-#' @importFrom magrittr %>%
-#' @importFrom dplyr filter group_by summarize
-#'
-#' @return
+#' @return dataframe. Historical stats
 #' @export
+#'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr filter group_by summarize n
 historical_basics <- function(df = "", sampling_station = "", grouping = "", by_month = T){
 
   if(by_month == T){
