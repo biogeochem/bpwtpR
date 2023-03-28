@@ -7,8 +7,6 @@
 #'  into the database file
 #' @param path_to_db_file string. Path to the .csv database file if it exists,
 #'  and desired path to a .csv database file if it does not exist
-#' @param path_to_processed_labdat_dir string. Path to the directory in which
-#'  the data that was added into the database file will be stored
 #' @param path_to_parameters string. Path to the .xlsx file that contains the
 #'  desired parameters and associated info (station, units, corrected units...)
 #'
