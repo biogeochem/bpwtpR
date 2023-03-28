@@ -184,10 +184,11 @@ update_parameters <- function(labdat, file_sheet_year,
                               "tbl_unit_updated",	"tbl_parm_unit",
                               "tbl_parm_eval",	"tbl_parm_tag")
 
-  if (!identical(colnames(labdat_parameters, labdat_parameters_cols))) {
+  if (!identical(colnames(labdat_parameters), labdat_parameters_cols)) {
     stop(paste0("Issue with parameters.xlsx input file. ",
                 "Column names have been edited. ",
-                "Check file requirements and parameter data."))
+                "Check file requirements and parameter data."),
+         call. = FALSE)
   }
 
   # To simplify column names while the data frame is being used
@@ -207,7 +208,8 @@ update_parameters <- function(labdat, file_sheet_year,
   } else {
     print("Rows for which there exist issues with the parameters:")
     print.data.frame(parm_check)
-    stop("Check parameters.xlsx and ensure that these parameters are handled.", call. = T)
+    stop("Check parameters.xlsx and ensure that these parameters are handled.",
+         call. = FALSE)
   }
 
   if (file_sheet_year < 2003) {
