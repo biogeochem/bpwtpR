@@ -1,0 +1,462 @@
+---
+title: "BPWTP Monthly Report"
+fontsize: 7pt
+geometry: left = 1.5cm, right = 1.5cm, top = 2cm, bottom = 2cm
+output:
+  html_document:
+    df_print: paged
+  pdf_document:
+    latex_engine: xelatex
+mainfont: Times New Roman
+header-includes: "\\usepackage{float}\n\\usepackage{caption}\n\\usepackage{fancyhdr}\n\\pagestyle{fancy}\n\\fancyhead[L]{\\LARGE{BUFFALO
+  POUND WATER TREATMENT PLANT}} \n\\setlength\\headheight{15pt}\n\\fancyhead[L]{\\large{Monthly
+  Summary Report: Jul 2020}}\n\\fancyhead[L]{\\large{Monthly Summary Report: 2020}}\n"
+editor_options:
+  chunk_output_type: console
+params:
+  path_to_db_file: ""
+  outdir: ""
+  selected_year: NA
+  selected_month: ""
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.pos = 'H', out.extra = "")
+#code <- sapply(list.files(file.path(".", "code"), full.names = TRUE), source)
+```
+
+```{r}
+library(bpwtpR)
+library(pander)
+library(tidyverse)
+library(lubridate)
+library(cowplot)
+```
+
+
+```{r update-data, echo = F, message = F, results = 'hide'}
+
+## The complete labdat database file (labdat_file) from 1980 to 2019 will never be changed
+## it will only be updated with the most contemporary data and saved as a new file
+
+labdat <- read_db(params$path_to_db_file)
+# To simplify column names while the data frame is being used. Blair wanted
+  # columns to start with _tbl
+colnames(labdat) <- str_remove(colnames(labdat), "tbl_")
+```
+
+```{r plot-all, eval = T}
+
+plot_all_parameters(labdat, params$selected_year, 
+                    parameter_group = "all",
+                    station_list = "all",
+                    params$outdir)
+
+```
+
+
+
+# Data Availability
+
+Data in this report includes weekly sampling across the water treatment process at Buffalo Pound Water Treatment Plant (BPWTP) from `r min(year(labdat$date_ymd))` to `r max(year(labdat$date_ymd))`.
+
+\newpage
+
+# Operations
+
+```{r operations_table}
+summarize_monthly_table(df = labdat, 
+            grouping = "operations", sampling_station = "Raw", 
+            params$selected_year)
+```
+
+```{r operations_table_historical}
+
+group_table_historical(df = labdat, params$selected_year,
+                       grouping = "operations", 
+                       sampling_station = "Raw", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9), 
+                       by_month = T,
+                       params$selected_month)
+
+group_table_historical(df = labdat, params$selected_year,
+                       grouping = "operations", 
+                       sampling_station = "Raw", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9), 
+                       by_month = F,
+                       params$selected_month)
+
+```
+
+
+\newpage
+
+# Physical
+
+```{r}
+raw_odour <- parm_fig(df = labdat, 
+                      params$selected_year, 
+                      var = "Odour",
+                      params$outdir)
+print(raw_odour)
+```
+
+\newpage
+
+## RawWater
+
+```{r physical_table}
+summarize_monthly_table(df = labdat, 
+                        grouping = "physical", 
+                        sampling_station = "Raw",
+                        params$selected_year)
+```
+
+```{r physical_table_historical}
+group_table_historical(df = labdat, 
+                       params$selected_year, 
+                       grouping = "physical", 
+                       sampling_station = "Raw", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9), 
+                       by_month = T, 
+                       params$selected_month)
+```
+
+
+\newpage
+
+# Major Constituents
+## RawWater
+```{r MC_table}
+summarize_monthly_table(df = labdat, 
+                        grouping = "majorConstituents", 
+                        sampling_station = "Raw", 
+                        params$selected_year)
+```
+
+```{r }
+group_table_historical(df = labdat, 
+                       params$selected_year, 
+                       grouping = "majorConstituents", 
+                       sampling_station = "Raw", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9), 
+                       by_month = T, 
+                       params$selected_month)
+```
+
+\newpage
+
+# Trace Constituents
+## RawWater 
+```{r TC_table}
+summarize_monthly_table(df = labdat, 
+                        grouping = "traceConstituents", 
+                        sampling_station = "Raw", 
+                        params$selected_year)
+```
+
+```{r }
+group_table_historical(df = labdat, params$selected_year,
+                       grouping = "traceConstituents",
+                       sampling_station = "Raw", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9), 
+                       by_month = T, 
+                       params$selected_month)
+```
+
+## PreFM
+```{r TCPreFM_table}
+summarize_monthly_table(df = labdat, 
+                        grouping = "traceConstituents", 
+                        sampling_station = "PreFM", 
+                        params$selected_year)
+```
+
+```{r }
+group_table_historical(df = labdat, 
+                       params$selected_year, 
+                       grouping = "traceConstituents", 
+                       sampling_station = "PreFM", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9), 
+                       by_month = T,
+                       params$selected_month)
+```
+
+\newpage
+
+# THMs
+```{r calc_thms}
+thms <- summarize_THM(labdat = labdat)
+```
+
+```{r thm_fig, fig.height=9, fig.cap="Individual and total trihalomethane concentrations throughout the BPWTP treatment process. The maximum acceptable concentration for tTHM is 0.1 mg/L or 100 ug/L (effective 2016).", fig.scap="tTHM time series", fig.asp= 1}
+tthm_fig(df = thms, 
+         params$selected_year)
+```
+
+Tables are presented on the next page.
+
+\newpage 
+
+```{r thm_table-preFM}
+summarize_monthly_table(df = labdat,  
+                        grouping = "THM", 
+                        sampling_station = "PreFM", 
+                        params$selected_year)
+```
+
+```{r thm_table-channel}
+summarize_monthly_table(df = labdat,
+                        grouping = "THM", 
+                        sampling_station = "Channel", 
+                        params$selected_year)
+```
+
+```{r thm_table-pregac}
+summarize_monthly_table(df = labdat, 
+            grouping = "THM", sampling_station = "PreGAC", 
+            params$selected_year)
+```
+
+```{r thm_table-clearwell}
+summarize_monthly_table(df = labdat,
+                        grouping = "THM", 
+                        sampling_station = "Clearwell", 
+                        params$selected_year)
+```
+
+
+
+\newpage
+
+# Biological
+## RawWater
+```{r bio_table}
+summarize_monthly_table(df = labdat,  
+                        grouping = "biological", 
+                        sampling_station = "Raw", 
+                        params$selected_year)
+```
+
+```{r }
+group_table_historical(df = labdat, 
+                       params$selected_year, 
+                       grouping = "biological",
+                       sampling_station = "Raw", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9), 
+                       by_month = T, 
+                       params$selected_month)
+```
+
+\newpage
+
+# Bacteriological
+## RawWater
+```{r bac_table}
+summarize_monthly_table(df = labdat, 
+                        grouping = "bacteriological", 
+                        sampling_station = "Raw", 
+                        params$selected_year)
+```
+
+```{r }
+group_table_historical(df = labdat, 
+                       params$selected_year, 
+                       grouping = "bacteriological", 
+                       sampling_station = "Raw", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9), 
+                       by_month = T,  
+                       params$selected_month)
+```
+
+
+\newpage
+
+# Historical Data Summaries
+## Operations
+
+```{r }
+group_table_historical(df = labdat, 
+                       params$selected_year,
+                       grouping = "operations",
+                       sampling_station = "Raw", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9), 
+                       by_month = F, 
+                       params$selected_month)
+
+```
+
+\newpage
+
+## Physical
+```{r }
+group_table_historical(df = labdat, 
+                       params$selected_year,
+                       grouping = "physical", 
+                       sampling_station = "Raw", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9), 
+                       by_month = F,  
+                       params$selected_month)
+
+```
+
+```{r }
+group_table_historical(df = labdat, 
+                       params$selected_year,
+                       grouping = "physical", 
+                       sampling_station = "Clearwell", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9), 
+                       by_month = F, 
+                       params$selected_month)
+
+```
+
+\newpage
+
+## Major Constituents
+```{r }
+group_table_historical(df = labdat,
+                       params$selected_year,
+                       grouping = "majorConstituents",
+                       sampling_station = "Raw", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9), 
+                       by_month = F,
+                       params$selected_month)
+
+```
+
+```{r }
+group_table_historical(df = labdat, 
+                       params$selected_year,
+                       grouping = "majorConstituents", 
+                       sampling_station = "Clearwell", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9),
+                       by_month = F, 
+                       params$selected_month)
+
+```
+
+\newpage
+
+## Trace Constituents
+```{r }
+group_table_historical(df = labdat, 
+                       params$selected_year,
+                       grouping = "traceConstituents", 
+                       sampling_station = "Raw", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9),
+                       by_month = F,
+                       params$selected_month)
+
+```
+
+```{r }
+group_table_historical(df = labdat, 
+                       params$selected_year,
+                       grouping = "traceConstituents",
+                       sampling_station = "Clearwell", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9), 
+                       by_month = F, 
+                       params$selected_month)
+
+```
+
+\newpage
+
+## tTHMs
+```{r }
+group_table_historical(df = labdat, 
+                       params$selected_year,
+                       grouping = "THM",
+                       sampling_station = "PreFM",
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9), 
+                       by_month = F, 
+                       params$selected_month)
+
+```
+
+```{r }
+group_table_historical(df = labdat,
+                       params$selected_year,
+                       grouping = "THM",
+                       sampling_station = "Channel", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9),
+                       by_month = F, 
+                       params$selected_month)
+
+```
+
+```{r }
+group_table_historical(df = labdat, 
+                       params$selected_year,
+                       grouping = "THM", 
+                       sampling_station = "PreGAC", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9),
+                       by_month = F, 
+                       params$selected_month)
+
+```
+
+```{r }
+group_table_historical(df = labdat, 
+                       params$selected_year,
+                       grouping = "THM", 
+                       sampling_station = "Clearwell",
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9), 
+                       by_month = F, 
+                       params$selected_month)
+
+```
+
+\newpage
+
+## Biological
+```{r }
+group_table_historical(df = labdat,
+                       params$selected_year,
+                       grouping = "biological",
+                       sampling_station = "Raw", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9), 
+                       by_month = F, 
+                       params$selected_month)
+
+```
+
+```{r }
+group_table_historical(df = labdat, 
+                       params$selected_year,
+                       grouping = "biological", 
+                       sampling_station = "Clearwell", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9),
+                       by_month = F, 
+                       params$selected_month)
+
+```
+
+\newpage
+
+## Bacteriological
+```{r }
+group_table_historical(df = labdat, 
+                       params$selected_year,
+                       grouping = "bacteriological", 
+                       sampling_station = "Raw", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9), 
+                       by_month = F, 
+                       params$selected_month)
+
+```
+
+```{r }
+group_table_historical(df = labdat, 
+                       params$selected_year,
+                       grouping = "bacteriological", 
+                       sampling_station = "Clearwell", 
+                       percentiles = c(0.1, 0.25, 0.5, 0.75, 0.9),
+                       by_month = F,
+                       params$selected_month)
+
+```
+
+\listoffigures
+\listoftables 
