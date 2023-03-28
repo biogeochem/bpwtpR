@@ -10,6 +10,8 @@
 #' @return dataframe containing the database, if it exists, or NULL if it does not
 read_db <- function(path_to_db_file) {
 
+  options(scipen = 999)
+
   fpath <- file.path(path_to_db_file)
 
   # The DB does not yet exist
