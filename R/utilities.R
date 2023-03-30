@@ -115,8 +115,15 @@ check_missing_params <- function(path_to_labdat_file, path_to_parameters) {
     mutate(`Row Number` = row_number() + 8) %>%
     select(`Row Number`, Parameters)
 
+  clearwell_start <- which(spreadsheet$Parameters == "CLEAR WELL")
+  clearwell_end   <- first(which(grepl(x = spreadsheet$Parameters,
+                                       pattern = "ion balance",
+                                       ignore.case = TRUE)))
+
   new_data_weekly <- scrape_labdatxls(path_to_labdat_file, path_to_parameters)
 
+  # Usually, section headers are identified by all characters being in CAPS.
+  # These can be ignored when determining which Parameters were not read in
   missing_params <- data.frame(
     Parameters = str_subset(setdiff(spreadsheet$Parameters,
                                     new_data_weekly$parameter),
@@ -126,29 +133,25 @@ check_missing_params <- function(path_to_labdat_file, path_to_parameters) {
     select(`Row Number`, Parameters) %>%
     arrange(`Row Number`)
 
-  # Usually, section headers are identified by all characters being in CAPS.
-  # These usually can be ignored when determining which Parameters were not read
-  # in, so we separate them from all other missed Parameters
-  missing_params_titles <- data.frame(
-    Parameters = str_subset(setdiff(spreadsheet$Parameters,
-                                    new_data_weekly$parameter),
-                            "^(([[:upper:]]*\\d*[[:punct:]]*)\\s?)*$")) %>%
-    left_join(spreadsheet, multiple = "all", by = "Parameters") %>%
-    select(`Row Number`, Parameters) %>%
-    arrange(`Row Number`)
 
-  if (!is_empty(missing_params) | !is_empty(missing_params_titles)) {
+
+  if (!is_empty(missing_params)) {
     print(paste("The following rows listed in the 'Parameters'",
                 "column of the lab data are not read in."))
-    print("These are likely not titles:")
-    print.data.frame(missing_params)
-    print("These might be titles:")
-    print.data.frame(missing_params_titles)
-    print(paste("If there exists a Parameter that is missing from the `RAW",
-                "LAKE WATER` or `CLEAR WELL` sections of the lab data, add",
-                "that parameter into parameters.xlsx and try again. If new",
-                "ion, Clearwell Al, or Clearwell THM values have been added",
-                "you must speak with the creator of this script."))
+    print("These come from the RAW WATER section of the sheet:")
+    print.data.frame(filter(missing_params, `Row Number` < clearwell_start))
+    print("These come from the CLEAR WELL section of the sheet:")
+    print.data.frame(filter(missing_params, `Row Number` >= clearwell_start &
+                                            `Row Number` < clearwell_end))
+    cat(paste("Do any of these rows contain data that you need?",
+              "If yes, add that parameter into parameters.xlsx and try again.",
+              "\nNOTE: If new parameters have been added within the",
+              "\n\tClearwell Al,\n\tClearwell THM,\n\tIon,\n\tEnd",
+              "\nsections of the sheet, you must speak with the creator of",
+              "this tool to ensure that that data is added into the",
+              "database file.\nYou can ONLY add new parameters if they",
+              "are within the RAW WATER or CLEAR WELL sections of the",
+              "weekly data."))
   }
 
 }
