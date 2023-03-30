@@ -37,6 +37,8 @@ prepare_labdat <- function(path_to_labdat_file,
   # desired for the sake of consistency
   options(scipen = 999)
 
+  check_parameters_doc(path_to_parameters)
+
   file_sheet_year <- str_extract(last(unlist(str_split(path_to_labdat_file,
                                                        "/"))),
                                  "[12][0-9]{3}")

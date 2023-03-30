@@ -1,3 +1,38 @@
+#' Check parameters.xlsx
+#'
+#' Check parameters.xlsx column names and ensure that duplicate rows are removed
+#'
+#' @inheritParams prepare_labdat
+#'
+#' @return dataframe containing the corrected parameter information
+check_parameters_doc <- function(path_to_parameters) {
+
+  labdat_parameters <- read_xlsx(path_to_parameters) %>%
+    mutate(tbl_parameter = as.character(tbl_parameter),
+           tbl_unit = as.character(tbl_unit))
+
+  labdat_parameters_cols <- c("tbl_datasheet",	"tbl_station",	"tbl_parameter",
+                              "tbl_parameter_updated",	"tbl_unit",
+                              "tbl_unit_updated",	"tbl_parm_unit",
+                              "tbl_parm_eval",	"tbl_parm_tag")
+
+  if (!identical(colnames(labdat_parameters), labdat_parameters_cols)) {
+    stop(paste0("Issue with parameters.xlsx input file. ",
+                "Column names have been edited. ",
+                "Check file requirements and parameter data."),
+         call. = FALSE)
+  }
+
+  if (anyDuplicated(labdat_parameters) != 0) {
+    # Want to eliminate any duplicates as they will create duplicate data in final
+    # dataframe
+    labdat_parameters <- unique(labdat_parameters)
+
+    write.xlsx(labdat_parameters, path_to_parameters)
+  }
+
+}
+
 #' Convert biological data
 #'
 #' Identifies biological values stored in per mL by identifying `10^-3` in the
@@ -178,18 +213,6 @@ update_parameters <- function(labdat, file_sheet_year,
   labdat_parameters <- read_xlsx(path_to_parameters) %>%
     mutate(tbl_parameter = as.character(tbl_parameter),
            tbl_unit = as.character(tbl_unit))
-
-  labdat_parameters_cols <- c("tbl_datasheet",	"tbl_station",	"tbl_parameter",
-                              "tbl_parameter_updated",	"tbl_unit",
-                              "tbl_unit_updated",	"tbl_parm_unit",
-                              "tbl_parm_eval",	"tbl_parm_tag")
-
-  if (!identical(colnames(labdat_parameters), labdat_parameters_cols)) {
-    stop(paste0("Issue with parameters.xlsx input file. ",
-                "Column names have been edited. ",
-                "Check file requirements and parameter data."),
-         call. = FALSE)
-  }
 
   # To simplify column names while the data frame is being used
   colnames(labdat_parameters) <- str_remove(colnames(labdat_parameters), "tbl_")
