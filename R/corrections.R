@@ -23,6 +23,20 @@ check_parameters_doc <- function(path_to_parameters) {
          call. = FALSE)
   }
 
+  # tbl_unit and tbl_unit_updated can reasonably have NAs. All other columns
+  # should be filled in. Will ensure that later functions can complete as
+  # they should
+  location_nas <- as.data.frame(which(is.na(labdat_parameters), arr.ind=TRUE))
+
+  if (!is_empty(which(location_nas$col != 5 & location_nas$col != 6))) {
+    print.data.frame(location_nas[(which(location_nas$col != 5 &
+                                           location_nas$col != 6)),])
+    stop(paste0("Issue with parameters.xlsx input file. ",
+                "Cells are missing values. Check cells at positions listed above. ",
+                "Check file requirements and parameter data."),
+         call. = FALSE)
+  }
+
   if (anyDuplicated(labdat_parameters) != 0) {
     # Want to eliminate any duplicates as they will create duplicate data in final
     # dataframe
