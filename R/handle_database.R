@@ -11,6 +11,10 @@
 #' @export
 #'
 #' @importFrom purrr map
+#'
+#' @example create_database("C:/Users/PC/Documents/uSask_2022/Buffalo Pound/data/labdat_datafiles/",
+#'                          "C:/Users/PC/Documents/uSask_2022/Buffalo Pound/data/db.csv",
+#'                          "C:/Users/PC/Documents/uSask_2022/Buffalo Pound/data/parameters.xlsx")
 create_database <- function(path_to_labdat_dir,
                             path_to_db_file,
                             path_to_parameters) {
@@ -31,11 +35,16 @@ create_database <- function(path_to_labdat_dir,
 #'
 #' @inheritParams prepare_labdat
 #'
-#' @return dataframe containing the processed lab data that has been inserted
-#'  into the database file
+#' @return dataframe containing the processed lab data that has been newly
+#'  inserted into the database file
 #' @export
+#'
+#' @example update_database("C:/Users/PC/Documents/uSask_2022/Buffalo Pound/data/labdat_datafiles/1981_routine_labdat.xlsx",
+#'                          "C:/Users/PC/Documents/uSask_2022/Buffalo Pound/data/db.csv",
+#'                          "C:/Users/PC/Documents/uSask_2022/Buffalo Pound/data/parameters.xlsx")
 update_database <- function(path_to_labdat_file,
-                            path_to_db_file) {
+                            path_to_db_file,
+                            path_to_parameters) {
 
   prepare_labdat(path_to_labdat_file,
                  path_to_db_file,
