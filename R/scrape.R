@@ -49,6 +49,10 @@ scrape_labdatxls <- function(path_to_labdat_file, path_to_parameters) {
          call. = FALSE)
   }
 
+  # Note that this document is used mostly to set up update parameter and unit
+  # names. Station column is virtually useless, and is not used in the scrape
+  # process. Scrape functions have been set up so as to hopefully populate
+  # the station column correctly without the use of the input station values.
   labdat_parameters <- read_xlsx(path_to_parameters) %>%
     mutate(tbl_parameter = as.character(tbl_parameter),
            tbl_unit = as.character(tbl_unit))
@@ -75,6 +79,8 @@ scrape_labdatxls <- function(path_to_labdat_file, path_to_parameters) {
   new_data_weekly <- bind_rows(rawwater, clearwell, clearwell_THMs,
                                clearwell_al, ion_values)
 
+  check_weekly_data(new_data_weekly, labdat_parameters)
+
   return(new_data_weekly)
 
 }
@@ -94,12 +100,18 @@ scrape_labdatxls <- function(path_to_labdat_file, path_to_parameters) {
 scrape_rawwater <- function(spreadsheet, clearwell_start, labdat_parameters) {
 
   rw_parms_list <- labdat_parameters %>%
-    filter(datasheet == "RawWater",
-           # Ion values are read in separately
-           !grepl("ion sum|% Difference", parameter, ignore.case = TRUE))
+    filter(datasheet == "RawWater") %>%
+    as.data.table() %>%
+    # Ion values are not read in at this point. They are read in together with
+    # CW ion values using scrape_ion_values() because they are found together at
+    # the bottom of the lab data sheet
+    fsetdiff(filter_ions(.)) %>%
+    as.data.frame()
 
-  thms <- rw_parms_list %>%
-    filter(parm_tag == "THM")
+  rw_thms <- rw_parms_list %>%
+    as.data.table() %>%
+    filter_thms(.) %>%
+    as.data.frame()
 
   rawwater <- spreadsheet %>%
     filter(row_number() < clearwell_start - 1) %>%
@@ -111,7 +123,7 @@ scrape_rawwater <- function(spreadsheet, clearwell_start, labdat_parameters) {
     mutate(date_ymd = excel_numeric_to_date(as.numeric(date_ymd)),
            # As directed by Blair. Raw water THMs are only measured at the
            # PreFM stage
-           station = as.factor(ifelse(parameter %in% thms$parameter |
+           station = as.factor(ifelse(parameter %in% rw_thms$parameter |
                                         grepl("PreFM", parameter),
                                       "PreFM","Raw"))) %>%
     filter(!is.na(date_ymd)) %>%
@@ -134,10 +146,15 @@ scrape_clearwell <- function(spreadsheet, clearwell_start, labdat_parameters) {
 
   # Aluminum, THMs, and ion values are read in separately
   cw_parms_list <- labdat_parameters %>%
-    filter(datasheet == "ClearWell",
-           !grepl("^Aluminum \\(", parameter, ignore.case = TRUE),
-           parm_tag  != "THM",
-           !grepl("ion sum|% Difference", parameter, ignore.case = TRUE))
+    filter(datasheet == "ClearWell") %>%
+    as.data.table() %>%
+    # Ion values are not read in at this point. They are read in together with
+    # CW ion values using scrape_ion_values() because they are found together at
+    # the bottom of the lab data sheet
+    fsetdiff(filter_ions(.)) %>%
+    fsetdiff(filter_thms(.)) %>%
+    fsetdiff(filter_al(.)) %>%
+    as.data.frame()
 
   # based on premise that the aluminum and THMs are NOT read in here
   clearwell <- spreadsheet %>%
@@ -148,15 +165,15 @@ scrape_clearwell <- function(spreadsheet, clearwell_start, labdat_parameters) {
                  names_to = "date_ymd", values_to = "result") %>%
     rename(parameter = Parameters, unit = Units) %>%
     mutate(date_ymd = excel_numeric_to_date(as.numeric(date_ymd)),
-           station = ifelse(grepl("PreGAC",parameter), "PreGAC",
-                            ifelse(grepl("Channel 1", parameter) & grepl("Coagulation", parameter),
-                                   "Channel 1",
-                                   ifelse(grepl("Channel 2", parameter) & grepl("Coagulation", parameter),
-                                          "Channel 2",
-                                          ifelse(grepl("Channel", parameter),
-                                                 "Channel",
-                                                 ifelse(grepl("PreFM", parameter),
-                                                        "PreFM", "Clearwell"))))),
+           station = case_when(grepl("PreGAC", parameter)
+                               ~ "PreGAC",
+                               grepl("Channel 1", parameter)
+                               ~ "Channel 1",
+                               grepl("Channel 2", parameter)
+                               ~ "Channel 2",
+                               grepl("PreFM", parameter)
+                               ~ "PreFM",
+                               TRUE ~ "Clearwell"),
            station = as.factor(station)) %>%
     filter(!is.na(date_ymd)) %>%
     add_column(datasheet = "ClearWell") %>%
@@ -179,19 +196,21 @@ scrape_clearwell_thms <- function(spreadsheet, clearwell_start, labdat_parameter
 
   # Expecting consistently 4 THM rows for each of Clearwell, Channel, PreGAC
   cw_thms_parms_list <- labdat_parameters %>%
-    filter(datasheet == "ClearWell",
-           parm_tag  == "THM")
+    filter(datasheet == "ClearWell") %>%
+    as.data.table() %>%
+    filter_thms(.) %>%
+    as.data.frame()
 
   clearwell_THMs <- spreadsheet %>%
     filter(row_number() > clearwell_start) %>%
     select(!starts_with("...")) %>%
     filter(Parameters %in% cw_thms_parms_list$parameter) %>%
-    mutate(station = ifelse(row_number() >= 1 & row_number() <= 5,
-                            "Clearwell", NA),
-           station = ifelse(row_number() >= 6 & row_number() <= 10,
-                            "Channel", station),
-           station = ifelse(row_number() >= 11 & row_number() <= 15,
-                            "PreGAC", station))
+    mutate(station = case_when(row_number() >= 1 & row_number() <= 5
+                               ~ "Clearwell",
+                               row_number() >= 6 & row_number() <= 10
+                               ~ "Channel",
+                               row_number() >= 11 & row_number() <= 15
+                               ~ "PreGAC"))
 
   if (nrow(clearwell_THMs) != 15) {
     stop(paste0("Issue with Clear Well THMs. ",
@@ -233,8 +252,10 @@ scrape_clearwell_al <- function(spreadsheet, clearwell_start, labdat_parameters)
   # "Aluminum (particulate)"
   # Using labdat_parameters instead of hard-coding to account for small typos
   cw_al_parms_list <- labdat_parameters %>%
-    filter(datasheet == "ClearWell",
-           grepl("^Aluminum \\(", parameter, ignore.case = TRUE))
+    filter(datasheet == "ClearWell") %>%
+    as.data.table() %>%
+    filter_al(.) %>%
+    as.data.frame()
 
   clearwell_Al <- spreadsheet %>%
     filter(row_number() > clearwell_start) %>%
@@ -251,12 +272,14 @@ scrape_clearwell_al <- function(spreadsheet, clearwell_start, labdat_parameters)
   clearwell_Al <- clearwell_Al %>%
     # The expected row setup is as follows: 3 Clearwell Al rows, 1 MMF1 Al row,
     # 1 MMF12 Al row, 2 PreGAC Al rows
-    mutate(station = ifelse(row_number() == 1 | row_number() == 2 | row_number() == 3,
-                            "Clearwell", NA),
-           station = ifelse(row_number() == 4, "MMF1", station),
-           station = ifelse(row_number() == 5, "MMF12", station),
-           station = ifelse(row_number() == 6 | row_number() == 7,
-                            "PreGAC", station)) %>%
+    mutate(station = case_when(row_number() == 1 | row_number() == 2 | row_number() == 3
+                               ~ "Clearwell",
+                               row_number() == 4
+                               ~ "MMF1",
+                               row_number() == 5
+                               ~ "MMF12",
+                               row_number() == 6 | row_number() == 7
+                               ~ "PreGAC")) %>%
     select(parameter = Parameters, unit = Units,
            station, everything()) %>%
     pivot_longer(cols = -c(parameter, unit, station),
@@ -289,8 +312,9 @@ scrape_clearwell_al <- function(spreadsheet, clearwell_start, labdat_parameters)
 scrape_ion_values <- function(spreadsheet, labdat_parameters) {
 
   ions_parms_list <- labdat_parameters %>%
-    filter(datasheet == "ClearWell",
-           grepl("ion sum|% Difference", parameter, ignore.case = TRUE))
+    as.data.table() %>%
+    filter_ions(.) %>%
+    as.data.frame()
 
   # Find where the ion values with silica included begin (desired values)
   silica_excluded_start        <- first(which(grepl("SILICA NOT ADDED",
@@ -359,82 +383,114 @@ scrape_ion_values <- function(spreadsheet, labdat_parameters) {
 #' @inheritParams scrape_labdatxls
 #'
 #' @return data frame of the DOC profile data
-scrape_docprofiles <- function(path_to_labdat_file){
+scrape_docprofiles <- function(path_to_doc_data_file, path_to_parameters){
 
-  # Unnecessary messages printed to console. Can be suppressed
-  labdat <- suppressMessages(read_excel(path_to_labdat_file,
-                                        sheet = "WTP DOC Profile",
-                                        range = cell_limits(ul = c(3, 2)),
-                                        col_names = TRUE))
+  labdat_parameters <- read_xlsx(path_to_parameters) %>%
+    mutate(tbl_parameter = as.character(tbl_parameter),
+           tbl_unit = as.character(tbl_unit)) %>%
+    filter(tbl_datasheet == "DOCProfile")
 
-  if (!grepl("date", colnames(labdat)[1], ignore.case = TRUE)) {
-    stop(paste0("Issue with DOC Profile sheet. ",
-                "An issue with the column setup was detected. ",
-                "Check file requirements and weekly data."),
-         call. = FALSE)
+  # To simplify column names while the data frame is being used. Blair wanted
+  # columns to start with _tbl
+  colnames(labdat_parameters) <- str_remove(colnames(labdat_parameters), "tbl_")
+
+  doc_data <- read_excel(path_to_doc_data_file,
+                         sheet = "WTP DOC Profile")
+
+  # Read in the sheet again as text to be able to alter the excess header names
+  doc_data <- read_excel(path_to_doc_data_file,
+                         sheet = "WTP DOC Profile",
+                         col_types = rep("text", times = ncol(doc_data)))
+
+  # Because of the merged cells and current header setup, read_excel yields many
+  # empty header cells. This fills them as they should be filled
+  doc_data[1,] <- t(as.data.frame((na.locf(as.character(doc_data[1,]),
+                                           na.rm = FALSE))))
+
+  # To check if there is an extra header row or not (3 header rows from 2021
+  # onwards VS 2 header rows from 2004 to 2020)
+  date_start <- which(doc_data == "Sample Date", arr.ind=TRUE)
+
+  # Either we are expecting an extra header row under the row that contains
+  # "Sample Date" or the data starts immediately underneath
+  if (is.na(excel_numeric_to_date(as.numeric(doc_data[date_start[1,1]+1,
+                                                      date_start[1,2]])))) {
+
+    # We only want to extend the cell values for Coagulant Dose values. All other
+    # cells should contain the required info
+    coag_dose_cells <- which(agrepl("Coagulant Dosage", doc_data[1,]))
+
+    doc_data[2, min(coag_dose_cells):max(coag_dose_cells)] <-
+      t(as.data.frame((na.locf(
+        as.character(doc_data[2,min(coag_dose_cells):max(coag_dose_cells)]),
+        na.rm = FALSE))))
+
+    names(doc_data) <- mapply(create_doc_colnames,
+                              doc_data[1,], doc_data[2,], doc_data[3,])
+
+    # Remove all unnecessary rows and cols - start dataframe at the correct cell
+    doc_data <- doc_data[date_start[1,1]+2:nrow(doc_data),
+                         date_start[1,2]:ncol(doc_data)]
+
+  } else {
+    # We consider that only the first two rows are headers
+    names(doc_data) <- mapply(create_doc_colnames,
+                              doc_data[1,], doc_data[2,], NA)
+
+    # Remove all unnecessary rows and cols - start dataframe at the correct cell
+    doc_data <- doc_data[date_start[1,1]+1:nrow(doc_data),
+                         date_start[1,2]:ncol(doc_data)]
   }
-
-  # Need separate line as suppressMessages() is not for use in pipes and
-  # options(warn = -1) does not suppress all of the printed messages
-  labdat <- select(labdat, date_ymd = 1, contains(c("PreFM", "FM", "Channel")))
 
   # There is a typo in WTP DOC profile, where a date is entered as "29Jan-18"
-  if (as_datetime("2018-01-22") %in% labdat$date_ymd) {
-    error_spot <- which(as_datetime("2018-01-22") == labdat$date_ymd) + 1
-    labdat$date_ymd[error_spot] <- as.Date("2018-01-29")
+  if (any(doc_data$`Sample Date` == "29Jan-18", na.rm = TRUE)) {
+    error_spot <- which(doc_data$`Sample Date` == "29Jan-18")
+    doc_data$`Sample Date`[error_spot] <- "43129"
   }
 
-  doc_profile_end <- min(which(is.na(labdat[[1]])))
+  # Summary stats are stored at the bottom of the DOC sheet and are not desired
+  doc_profile_end <- min(which(is.na(doc_data[[1]])))
 
-  # Reading in the doc_profile sometimes includes an empty few rows at the start
-  # which need to be removed
-  while (doc_profile_end == 1){
-    labdat <- labdat[-1,]
-    doc_profile_end <- min(which(is.na(labdat[[1]])))
-  }
+  doc_parms_list <- filter(labdat_parameters, datasheet == "DOCProfile")
 
-  labdat <- labdat %>%
-    filter(row_number() < doc_profile_end)
+  # The na.locf process can create excess columns, especially in later sheets
+  # where a copy-paste typo exists and ~250 columns are read in
+  doc_data <- doc_data[, !duplicated(colnames(doc_data))]
 
-  # Columns at this point are not properly named, and should be identified as
-  # either being DOC values or DOC % Removal values
-  for (i in 1:((ncol(labdat)-1)/2)) {
-    # At this point, colnames look like:
-    # "date_ymd" "PreFM...4" "PreFM...9" "FM...5" "FM...10" "Channel...6" "Channel...11"
-    # TBD 2022 MISSING ONE OF THESE SO CHANGED TO NCOL-1/2
-    # , where there are two columns per station (col#1 = DOC, col#2 = DOC removal).
-    # This line allows us to pull out the station from each pair of columns
-    station <- unlist(strsplit(colnames(labdat)[i*2], "[.]"))[1]
+  # Want to pull in only desired columns AND the date column
+  doc_data <- doc_data[, c(names(doc_data)[(names(doc_data) %in%
+                                        doc_parms_list$parameter)],
+                       "Sample Date")]
 
-    labdat <- labdat %>%
-      as.data.frame() %>%
-      # Every second column starting from col 2 contain DOC values
-      setnames(i*2, paste("DOC", station, sep = "_")) %>%
-      # Every second column starting from column 3 contain DOC removal values
-      setnames(i*2+1, paste("DOC Removal", station, sep = " - "))
-  }
-
-  labdat_doc <- labdat %T>%
-    # options() line to suppress messages printed to console when pivoting,
-    # as "station" value is not extracted from DOC Removal column names
-    {options(warn = -1)} %>%
-    # DOC removal values and older files' date values are read in as character
-    mutate_if(is.character, as.numeric) %>%
-    # This correctly sets the station for the DOC values but sets the station as
-    # NA for DOC removal values (to later fill with "Combined Stations")
+  doc_data <- doc_data %>%
+    filter(row_number() < doc_profile_end) %>%
+    rename(date_ymd = "Sample Date") %>%
     pivot_longer(cols = -(date_ymd),
-                 names_to = c("parameter", "station"),
-                 values_to = "result",
-                 names_sep = "_") %T>%
-    {options(warn = 0)} %>%
-    mutate(datasheet = "doc_profile",
-           station = replace_na(station, "Combined Stations"),
-           date_ymd = as.Date(date_ymd, origin = "1899-12-30"),
-           unit = ifelse(grepl("Removal", parameter), "%", "mg/L C"),
-           result = round(result, digits = 2)) %>%
-    arrange(parameter, station, date_ymd) %>%
-    select(datasheet, station, parameter, unit, date_ymd, result)
+                 names_to = "parameter",
+                 values_to = "result") %>%
+    left_join(doc_parms_list, by = "parameter") %>%
+    mutate(date_ymd = excel_numeric_to_date(as.numeric(date_ymd))) %>%
+    select(datasheet, station, parameter = parameter_updated, unit = unit_updated,
+           date_ymd, result)
 
-  return(labdat_doc)
+  return(doc_data)
 
+}
+
+
+#' Create DOC colnames
+#'
+#' Use all available header row info to create full column names for DOC profile
+#' data
+#'
+#' @param val1 string. Value in 1st header row
+#' @param val2 string. Value in 2nd header row
+#' @param val3 string. Value in 3rd header row, if there are three header rows.
+#'  NA otherwise
+#'
+#' @return string. Column name
+create_doc_colnames <- function(val1, val2, val3) {
+  colname <- c(val1, val2, val3)
+  colname <- colname[!is.na(colname)]
+  colname <- paste(colname, collapse = " ")
 }

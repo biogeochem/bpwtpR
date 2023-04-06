@@ -28,6 +28,7 @@
 #' @importFrom tidyselect all_of starts_with everything contains
 #' @importFrom rlang .data is_empty
 #' @importFrom cellranger cell_limits
+#' @importFrom zoo na.locf
 #'
 prepare_labdat <- function(path_to_labdat_file,
                            path_to_db_file,
