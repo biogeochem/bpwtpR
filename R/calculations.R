@@ -266,7 +266,6 @@ PACl <- function(labdat) {
   return(PACl_calculated)
 }
 
-# Operations ---------------
 #' Calculate PACl DAE
 #'
 #' Calculate PACl as dry alum equivalent, equal to PACl\*2.07
