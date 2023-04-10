@@ -30,8 +30,9 @@ check_parameters_doc <- function(path_to_parameters) {
   # matching can cause other issues. User will be required to fix any mistakes
   # that a simple gsub cannot fix
   correct_inputs <- list(datasheet = c("ClearWell", "RawWater", "DOCProfile"),
-                         station   = c("Clearwell", "Raw",
+                         station   = c("Clearwell", "Raw", "PreGAC/Clearwell",
                                        "PreGAC", "PreFM", "FM",
+                                       "Train A", "Train B",
                                        "MMF1", "MMF12", "MMFA", "MMFL",
                                        "Channel", "Channel 1", "Channel 2",
                                        "Combined Stations"),
@@ -121,20 +122,19 @@ check_parameters_doc <- function(path_to_parameters) {
 
 }
 
-#' Check weekly data
+#' Check scraped data
 #'
-#' Check data read in with scrape_labdatxls. Ensure that station names, which
-#' are assigned within the script and are not assigned using the parameters
-#' document, are done correctly such that there is only one set of data values
-#' for each combination of datasheet, station, parameter, unit
+#' Check data read in with scrape_labdatxls by and scrape_docprofiles. Ensure
+#' that scrapes were done correctly such that there is only one set of data
+#' values for each combination of datasheet, station, parameter, unit
 #'
 #' @param new_data_weekly dataframe. Output from scrape_labdatxls
 #' @param labdat_parameters dataframe. Slightly processed parameters.xlsx data
 #'
 #' @return
-check_weekly_data <- function(new_data_weekly, labdat_parameters) {
+check_scraped_data <- function(new_data, labdat_parameters) {
 
-  frequencies <- new_data_weekly %>%
+  frequencies <- new_data %>%
     group_by(datasheet, station, parameter, unit) %>%
     summarise(n = n())
 
@@ -155,15 +155,90 @@ check_weekly_data <- function(new_data_weekly, labdat_parameters) {
       select(colnames(labdat_parameters))
 
     print.data.frame(issue_parameters)
-    stop(paste("Issue with the data read-in process. This is most likely to",
-               "occur if a new parameter was added to parameters.xlsx that has",
-               "a station other than Raw or Clearwell AND does not have the",
-               "new station name in the parameter name.\nIf this is the case,",
-               "change the parameter name in the lab data file to contain",
-               "the station name and update the parameters.xlsx document. See",
-               "the issue rows from the parameters.xlsx doc that are printed above.",
-               "\nIf this is not the case, contact the tool creator."),
-         call. = FALSE)
+
+    if (all(new_data$datasheet == "DOCProfile")) {
+      stop(paste("Issue with the DOC Profile data read-in process. This is most",
+                 "likely to occur if the DOC Profile sheet setup was altered",
+                 "such that this tool does not know how to read in the data.",
+                 "\nIf this is the case, change the DOC profile setup to match",
+                 "the file requirements. See the issue rows from the",
+                 "parameters.xlsx doc that are printed above.",
+                 "\nIf this is not the case, contact the tool creator."),
+           call. = FALSE)
+    } else {
+      stop(paste("Issue with the data read-in process. This is most likely to",
+                 "occur if a new parameter was added to parameters.xlsx that has",
+                 "a station other than Raw or Clearwell AND does not have the",
+                 "new station name in the parameter name.\nIf this is the case,",
+                 "change the parameter name in the lab data file to contain",
+                 "the station name and update the parameters.xlsx document. See",
+                 "the issue rows from the parameters.xlsx doc that are printed above.",
+                 "\nIf this is not the case, contact the tool creator."),
+           call. = FALSE)
+    }
   }
+}
+
+#' Identify which parameters are missing in parameters.xlsx
+#'
+#' Identify the user that certain rows from the lab data weekly data sheet
+#' are not read in by the script.
+#'
+#' @inheritParams scrape_labdatxls
+#'
+#' @return Print message showing user the next action steps
+#'
+#' @export
+check_missing_params <- function(path_to_labdat_file, path_to_parameters) {
+
+  spreadsheet <- suppressMessages(read_excel(path_to_labdat_file,
+                                             sheet = 1,
+                                             col_names = TRUE, col_types = NULL,
+                                             skip = 7)) %>%
+    mutate(`Row Number` = row_number() + 8) %>%
+    select(`Row Number`, Parameters)
+
+  clearwell_start <- which(spreadsheet$Parameters == "CLEAR WELL")
+  clearwell_end   <- first(which(grepl(x = spreadsheet$Parameters,
+                                       pattern = "ion balance",
+                                       ignore.case = TRUE)))
+
+  new_data_weekly <- scrape_labdatxls(path_to_labdat_file, path_to_parameters)
+
+  # Usually, section headers are identified by all characters being in CAPS.
+  # These can be ignored when determining which Parameters were not read in
+  missing_params <- data.frame(
+    Parameters = str_subset(setdiff(spreadsheet$Parameters,
+                                    new_data_weekly$parameter),
+                            "^(([[:upper:]]*\\d*[[:punct:]]*)\\s?)*$",
+                            negate = TRUE)) %>%
+    left_join(spreadsheet, multiple = "all", by = "Parameters") %>%
+    select(`Row Number`, Parameters) %>%
+    arrange(`Row Number`)
+
+
+
+  if (!is_empty(missing_params)) {
+    print(paste("The following rows listed in the 'Parameters'",
+                "column of the lab data are not read in."))
+    print("These come from the RAW WATER section of the sheet:")
+    print.data.frame(filter(missing_params, `Row Number` < clearwell_start))
+    print("These come from the CLEAR WELL section of the sheet:")
+    print.data.frame(filter(missing_params, `Row Number` >= clearwell_start &
+                              `Row Number` < clearwell_end))
+    cat(paste("Do any of these rows contain data that you need?",
+              "If yes, add that parameter into parameters.xlsx and try again.",
+              "\nNOTE: If new parameters have been added within the",
+              "\n\tClearwell Al,\n\tClearwell THM,\n\tIon,\n\tEnd",
+              "\nsections of the sheet, you must speak with the creator of",
+              "this tool to ensure that that data is added into the",
+              "database file.\nYou can ONLY add new parameters if they",
+              "are within the RAW WATER or CLEAR WELL sections of the",
+              "weekly data."))
+  }
+
+}
+
+check_missing_doc_params <- function(path_to_labdat_file, path_to_parameters) {
 
 }

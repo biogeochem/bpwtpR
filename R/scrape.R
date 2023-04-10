@@ -79,7 +79,7 @@ scrape_labdatxls <- function(path_to_labdat_file, path_to_parameters) {
   new_data_weekly <- bind_rows(rawwater, clearwell, clearwell_THMs,
                                clearwell_al, ion_values)
 
-  check_weekly_data(new_data_weekly, labdat_parameters)
+  check_scraped_data(new_data_weekly, labdat_parameters)
 
   return(new_data_weekly)
 
@@ -472,6 +472,8 @@ scrape_docprofiles <- function(path_to_doc_data_file, path_to_parameters){
     mutate(date_ymd = excel_numeric_to_date(as.numeric(date_ymd))) %>%
     select(datasheet, station, parameter = parameter_updated, unit = unit_updated,
            date_ymd, result)
+
+  check_scraped_data(doc_data, labdat_parameters)
 
   return(doc_data)
 
