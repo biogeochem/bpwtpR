@@ -131,16 +131,20 @@ check_parameters_rwcw <- function(path_to_labdat_file, path_to_parameters) {
 
   skip_num <- 7
 
-  spreadsheet <- read_weekly(path_to_labdat_file, skip_num)  %>%
-    mutate(`Row Number` = row_number() + skip_num + 1) %>%
-    select(`Row Number`, Parameters)
+  spreadsheet <- read_weekly(path_to_labdat_file, skip_num)
 
   clearwell_start <- which(spreadsheet$Parameters == "CLEAR WELL")
   clearwell_end   <- first(which(grepl(x = spreadsheet$Parameters,
                                        pattern = "ion balance",
                                        ignore.case = TRUE)))
 
-  new_data_weekly <- scrape_labdatxls(path_to_labdat_file, labdat_parameters)
+  new_data_weekly <- scrape_labdatxls(spreadsheet, labdat_parameters)
+
+  # To keep track of which position missing rows exist so that user can better
+  # see where they are in the lab data file
+  spreadsheet <- spreadsheet %>%
+    mutate(`Row Number` = row_number() + skip_num + 1) %>%
+    select(`Row Number`, Parameters)
 
   # Usually, section headers are identified by all characters being in CAPS.
   # These can be ignored when determining which Parameters were not read in
@@ -170,6 +174,40 @@ check_parameters_rwcw <- function(path_to_labdat_file, path_to_parameters) {
               "database file.\nYou can ONLY add new parameters if they",
               "are within the RAW WATER or CLEAR WELL sections of the",
               "weekly data."))
+  }
+
+}
+
+#' Identify which DOC Profile parameters are missing in parameters.xlsx
+#'
+#' Inform the user that certain rows from the lab data DOC Profile sheet
+#' are not read in by the script.
+#'
+#' @inheritParams prepare_labdat
+#'
+#' @return Print message showing user the next action steps
+#'
+#' @export
+check_parameters_doc <- function(path_to_labdat_file, path_to_parameters) {
+  labdat_parameters <- path_to_parameters %>%
+    read_parameters() %>%
+    check_parameters_setup() %>%
+    filter(datasheet == "DOCProfile")
+
+  spreadsheet <- read_doc(path_to_labdat_file)
+
+  missing_params <- setdiff(colnames(spreadsheet), labdat_parameters$parameter)
+
+  missing_params <- missing_params[grep("date", missing_params,
+                                        ignore.case = TRUE, invert = TRUE)]
+
+  if (!is_empty(missing_params)) {
+    print(sprintf("The following columns from the DOC profile are not read in: %s",
+            paste(sprintf("%s", missing_params), collapse=", ")))
+    cat(paste("Note that columns are named by combining all of the header row ",
+              "text together (including the contents of merged cells).",
+              "\nDo any of these columns contain data that you need?",
+              "If yes, add that parameter into parameters.xlsx and try again."))
   }
 
 }
