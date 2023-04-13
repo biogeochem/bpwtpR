@@ -51,13 +51,14 @@ read_weekly <- function(path_to_labdat_file, skip_num = 7) {
 #'
 #' @return dataframe containing the DOC data with edited column headers
 read_doc <- function(path_to_labdat_file) {
-  doc_data <- read_excel(path_to_labdat_file,
-                         sheet = "WTP DOC Profile")
+  doc_data <- suppressMessages(read_excel(path_to_labdat_file,
+                                          sheet = "WTP DOC Profile"))
 
   # Read in the sheet again as text to be able to alter the excess header names
-  doc_data <- read_excel(path_to_labdat_file,
-                         sheet = "WTP DOC Profile",
-                         col_types = rep("text", times = ncol(doc_data)))
+  doc_data <- suppressMessages(read_excel(path_to_labdat_file,
+                                          sheet = "WTP DOC Profile",
+                                          col_types = rep("text",
+                                                          times = ncol(doc_data))))
 
   # Because of the merged cells and current header setup, read_excel yields many
   # empty header cells. This fills them as they should be filled
@@ -66,7 +67,9 @@ read_doc <- function(path_to_labdat_file) {
 
   # To check if there is an extra header row or not (3 header rows from 2021
   # onwards VS 2 header rows from 2004 to 2020)
-  date_start <- which(doc_data == "Sample Date", arr.ind=TRUE)
+  date_start <- which(sapply(doc_data,
+                             function(x) grepl("date", x, ignore.case = TRUE)),
+                      arr.ind = TRUE)
 
   # Either we are expecting an extra header row under the row that contains
   # "Sample Date" or the data starts immediately underneath
