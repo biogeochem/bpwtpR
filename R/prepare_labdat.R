@@ -3,12 +3,14 @@
 #' Prepare lab data for incorporation into database. Extract the data that is
 #'  not yet in the database, format it, and insert into the database file.
 #'
-#' @param path_to_labdat_file string. Path to the lab data file to be inserted
-#'  into the database file
-#' @param path_to_db_file string. Path to the .csv database file if it exists,
-#'  and desired path to a .csv database file if it does not exist
-#' @param path_to_parameters string. Path to the .xlsx file that contains the
-#'  desired parameters and associated info (station, units, corrected units...)
+#' @param path_to_labdat_file string. Full path (from root directory) to the lab
+#'  data file to be inserted into the database file
+#' @param path_to_db_file string. Full path (from root directory) to the .csv
+#'  database file if it exists, and desired path to a .csv database file if it
+#'  does not exist
+#' @param path_to_parameters string. Full path (from root directory) to the
+#'  .xlsx file that contains the desired parameters and associated info
+#'  (station, units, corrected units...)
 #'
 #' @return dataframe containing the processed lab data that has been inserted
 #'  into the database file
@@ -17,18 +19,20 @@
 #' @importFrom lubridate as_datetime year month day yday week
 #' @importFrom dplyr case_when distinct filter first mutate rename row_number
 #'  select mutate_if left_join group_by summarise arrange bind_rows last nth
+#'  ungroup
 #' @importFrom stats complete.cases
 #' @importFrom janitor excel_numeric_to_date
 #' @importFrom tidyr pivot_longer replace_na pivot_wider
 #' @importFrom utils read.table read.csv write.table write.csv
 #' @importFrom readxl read_excel excel_sheets read_xlsx
-#' @importFrom data.table setnames
+#' @importFrom data.table setnames as.data.table fsetdiff
 #' @importFrom stringr str_remove str_extract str_split str_subset
 #' @importFrom stats sd
 #' @importFrom tidyselect all_of starts_with everything contains
 #' @importFrom rlang .data is_empty
 #' @importFrom cellranger cell_limits
 #' @importFrom zoo na.locf
+#' @importFrom writexl write_xlsx
 #'
 prepare_labdat <- function(path_to_labdat_file,
                            path_to_db_file,
@@ -38,7 +42,9 @@ prepare_labdat <- function(path_to_labdat_file,
   # desired for the sake of consistency
   options(scipen = 999)
 
-  check_parameters_doc(path_to_parameters)
+  labdat_parameters <- path_to_parameters %>%
+    read_parameters() %>%
+    check_parameters_setup()
 
   file_sheet_year <- str_extract(last(unlist(str_split(path_to_labdat_file,
                                                        "/"))),
@@ -50,7 +56,10 @@ prepare_labdat <- function(path_to_labdat_file,
 
   old_data <- read_db(path_to_db_file)
 
-  new_data_weekly <- scrape_labdatxls(path_to_labdat_file, path_to_parameters) %>%
+  new_data_weekly <- path_to_labdat_file %>%
+    read_weekly() %>%
+    scrape_labdatxls(labdat_parameters) %>%
+    check_scraped_data(labdat_parameters) %>%
     mutate(sheet_year = as.factor(file_sheet_year))
 
   # One of the files has "<1 entered instead of <1 in one of the cells
@@ -60,7 +69,10 @@ prepare_labdat <- function(path_to_labdat_file,
 
   # WTP DOC Profile sheet exists only in some sheets from 2001 onwards
   if ("WTP DOC Profile" %in% excel_sheets(path_to_labdat_file)) {
-    new_data_doc <- scrape_docprofiles(path_to_labdat_file) %>%
+    new_data_doc <- path_to_labdat_file %>%
+      read_doc() %>%
+      scrape_docprofiles(labdat_parameters) %>%
+      check_scraped_data(labdat_parameters) %>%
       mutate(sheet_year = as.factor(file_sheet_year))
   } else {
     new_data_doc <- as.data.frame(NULL)
@@ -126,7 +138,7 @@ prepare_labdat <- function(path_to_labdat_file,
 
   # Processing data to add -----------------------------------------------------
   print("Updating parameters...")
-  new_data <- update_parameters(new_data, file_sheet_year, path_to_parameters)
+  new_data <- update_parameters(new_data, file_sheet_year, labdat_parameters)
 
   print("Correcting detection limit, removing values calculated in-sheet...")
 

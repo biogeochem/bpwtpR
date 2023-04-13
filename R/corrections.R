@@ -168,19 +168,12 @@ replace_dl <- function(labdat){
 #'  human error. Update to ensure consistency
 #'
 #' @inheritParams convert_biocounts
-#' @inheritParams prepare_labdat
 #' @param file_sheet_year numeric value indicating the sheet year
+#' @inheritParams scrape_labdatxls
 #'
 #' @return data frame with updated parameter name, unit, and parm_unit
 update_parameters <- function(labdat, file_sheet_year,
-                              path_to_parameters){
-
-  labdat_parameters <- read_xlsx(path_to_parameters) %>%
-    mutate(tbl_parameter = as.character(tbl_parameter),
-           tbl_unit = as.character(tbl_unit))
-
-  # To simplify column names while the data frame is being used
-  colnames(labdat_parameters) <- str_remove(colnames(labdat_parameters), "tbl_")
+                              labdat_parameters){
 
   labdat_mod <- labdat %>%
     left_join(labdat_parameters, by = c("datasheet", "station", "parameter",
