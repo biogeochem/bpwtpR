@@ -14,7 +14,7 @@ check_parameters_setup <- function(labdat_parameters) {
 
   labdat_parameters_cols <- c("datasheet",	"station",	"parameter",
                               "parameter_updated",	"unit",
-                              "unit_updated",	"parm_unit",
+                              "unit_updated",
                               "parm_eval",	"parm_tag")
 
   # Checking col names ---------------------------------------------------------
@@ -169,6 +169,8 @@ check_parameters_setup <- function(labdat_parameters) {
   # Something had to be changed in the parameters.xlsx doc and should be used
   # in all future usage of this tool
   if (parameters_changed) {
+    # Blair would like colnames to start with "tbl_"
+    colnames(labdat_parameters) <- paste("tbl", colnames(labdat_parameters), sep = "_")
     write_xlsx(labdat_parameters, path_to_parameters)
   }
 

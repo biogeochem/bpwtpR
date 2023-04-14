@@ -49,9 +49,7 @@ convert_UV254 <- function(labdat) {
            result_flag = ifelse(parameter == "UV 254",
                                 "converted", result_flag),
            unit        = ifelse(parameter == "UV 254",
-                                "Abs 1cm", unit),
-           parm_unit   = ifelse(parameter == "UV 254",
-                                "UV254_abs.1cm", parm_unit))
+                                "Abs 1cm", unit))
 
   return(df)
 }
@@ -171,7 +169,7 @@ replace_dl <- function(labdat){
 #' @param file_sheet_year numeric value indicating the sheet year
 #' @inheritParams scrape_labdatxls
 #'
-#' @return data frame with updated parameter name, unit, and parm_unit
+#' @return data frame with updated parameter name, unit
 update_parameters <- function(labdat, file_sheet_year,
                               labdat_parameters){
 
@@ -216,16 +214,11 @@ update_parameters <- function(labdat, file_sheet_year,
       # Adding "(UV)" to the units to indicate the use of this method.
       # This is not done with the left_join above as DOC/TOC units in the
       # labdat sheets are not accurate
-      mutate(unit_updated = ifelse(!grepl("GFdiss", parm_unit) &
+      mutate(unit_updated = ifelse(!grepl("GF", parameter) &
                                      (parameter_updated == "DOC" |
                                         parameter_updated == "TOC"),
-                                   paste(unit_updated, "(UV)", sep = " "),
-                                   unit_updated),
-             parm_unit    = ifelse(!grepl("GFdiss", parm_unit) &
-                                     (parameter_updated == "DOC" |
-                                        parameter_updated == "TOC"),
-                                   paste(parm_unit, "UV", sep = "."),
-                                   parm_unit))
+                                   paste(unit_updated, "(UV)"),
+                                   unit_updated))
   }
 
   if (file_sheet_year < 2018) {
@@ -240,7 +233,7 @@ update_parameters <- function(labdat, file_sheet_year,
   labdat_mod <- labdat_mod %>%
     select(datasheet, sheet_year, station, date_ymd,
            parameter = parameter_updated, unit = unit_updated,
-           parm_unit, parm_eval, parm_tag, result) %>%
+           parm_eval, parm_tag, result) %>%
     mutate(datasheet = ifelse(parameter == "Free Chlorine" |
                                 parameter == "Combined Chlorine",
                               "ClearWell", datasheet),

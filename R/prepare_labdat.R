@@ -84,10 +84,10 @@ prepare_labdat <- function(path_to_labdat_file,
     database_dates_doc    <- NA
   } else {
     database_dates_weekly <-
-      unique(select(filter(old_data, tbl_datasheet != "doc_profile"), "tbl_date_ymd"))
+      unique(select(filter(old_data, tbl_datasheet != "DOCProfile"), "tbl_date_ymd"))
 
     database_dates_doc    <-
-      unique(select(filter(old_data, tbl_datasheet == "doc_profile"), "tbl_date_ymd"))
+      unique(select(filter(old_data, tbl_datasheet == "DOCProfile"), "tbl_date_ymd"))
   }
 
   current_dates_weekly  <- unique(new_data_weekly$date_ymd)
@@ -161,7 +161,7 @@ prepare_labdat <- function(path_to_labdat_file,
   # DOC profile values and LSI RTW values are calculated_insheet but are NOT
   # recalculated by script, and are left in the DB as-is
   new_data_calc_insheet <- new_data %>%
-    filter(parm_eval == "calculated_insheet" & datasheet != "doc_profile" &
+    filter(parm_eval == "calculated_insheet" & datasheet != "DOCProfile" &
              parameter != "Langelier Index (RTW)") %>%
     # To keep result_org to later combine with the results calculated by script
     select(!c("result", "parm_eval"))
@@ -170,7 +170,7 @@ prepare_labdat <- function(path_to_labdat_file,
   # join() and summarise() functions print messages to the console that we don't
   # need to see
   new_data_calcs <- suppressMessages(apply_calculations(new_data %>%
-                                                          filter(datasheet != "doc_profile"),
+                                                          filter(datasheet != "DOCProfile"),
                                                         file_sheet_year))
 
   # Combine values calculated in script with those calculated in sheet ---------
@@ -181,8 +181,9 @@ prepare_labdat <- function(path_to_labdat_file,
     {options(warn = -1)} %>%
     left_join(new_data_calc_insheet) %T>%
     {options(warn = 0)} %>%
-    select("datasheet":"parm_unit", "parm_eval", "parm_tag",
-           "result", "result_org", "result_flag")
+    select(datasheet, sheet_year, station, date_ymd,
+           parameter, unit,	parm_eval, parm_tag,
+           result, result_org, result_flag)
 
   new_data_calcs_combo <- new_data_calcs %>%
     filter(datasheet == "Combined Sheets") %T>%
@@ -192,7 +193,8 @@ prepare_labdat <- function(path_to_labdat_file,
     # labdat files (here: "Combined", in sheet = "Raw" | "Clearwell")
     left_join(select(new_data_calc_insheet, !c(datasheet, station))) %T>%
     {options(warn = 0)} %>%
-    select(datasheet:parm_unit, parm_eval, parm_tag,
+    select(datasheet, sheet_year, station, date_ymd,
+           parameter, unit,	parm_eval, parm_tag,
            result, result_org, result_flag)
 
   new_data_calcs <- rbind(new_data_calcs_not_combo, new_data_calcs_combo) %>%
@@ -201,7 +203,7 @@ prepare_labdat <- function(path_to_labdat_file,
   # Combining measured and calculated data -------------------------------------
   print("Appending new data...")
   new_data <- new_data %>%
-    filter(!(parm_eval == "calculated_insheet" & datasheet != "doc_profile" &
+    filter(!(parm_eval == "calculated_insheet" & datasheet != "DOCProfile" &
                parameter != "Langelier Index (RTW)")) %>%
     rbind(new_data_calcs)
 
@@ -211,7 +213,9 @@ prepare_labdat <- function(path_to_labdat_file,
            day   = day(date_ymd),
            day_num   = yday(date_ymd),
            week_num  = week(date_ymd)) %>%
-    select(datasheet:date_ymd, year:week_num, parameter:result_flag) %>%
+    select(datasheet, sheet_year, station, date_ymd,
+           parameter, unit,	parm_eval, parm_tag,
+           result, result_org, result_flag) %>%
     mutate_if(is.character, as.factor)
 
   # Putting new data in database -----------------------------------------------

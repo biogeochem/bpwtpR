@@ -31,7 +31,7 @@ summarize_THM <- function(labdat) {
     filter(parm_tag == "THM") %>%
     group_by(station, date_ymd) %>%
     mutate(TTHMs = sum(result)) %>%
-    group_by(parm_unit) %>%
+    group_by(parameter) %>%
     mutate(hist.max = max(result), hist.min = min(result))
 
 }

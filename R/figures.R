@@ -160,9 +160,9 @@ tthm_fig <- function(df = "thms", year_select = ""){
   df$station <- factor(df$station)
 
   trend_plot <- trend_fig(df = df, year_select = year_select,
-                          var = unique(df$parm_unit))
+                          var = unique(df$parameter))
   trend_plot <- trend_plot +
-    facet_grid(parm_unit ~ station, scales = "free_y") +
+    facet_grid(parameter ~ station, scales = "free_y") +
     geom_hline(aes(yintercept = hist.max), col = "red", linetype = "dashed") +
     geom_hline(aes(yintercept = hist.min), col = "red", linetype = "dashed") +
     labs(title = "Individual trihalomethanes",

@@ -11,7 +11,7 @@
 apply_calculations <- function(labdat, file_sheet_year){
 
   column_names <- c("datasheet", "sheet_year", "station", "date_ymd",
-                    "parameter", "unit", "parm_unit",	"parm_eval", "parm_tag",
+                    "parameter", "unit",	"parm_eval", "parm_tag",
                     "result")
 
   calculated_values <- bind_rows(calculate_value(column_names, labdat,
@@ -21,7 +21,6 @@ apply_calculations <- function(labdat, file_sheet_year){
                                       fn = al_particulate,
                                       tbl_parameter = "Aluminum (particulate)",
                                       tbl_unit = "\u00b5g/L",
-                                      tbl_parm_unit = "par_aluminum_ug.L",
                                       tbl_parm_tag = "traceConstituents",
                                       round_to = 2),
                                  calculate_value(column_names, labdat,
@@ -30,7 +29,6 @@ apply_calculations <- function(labdat, file_sheet_year){
                                       fn = suva,
                                       tbl_parameter = "SUVA",
                                       tbl_unit = "L/(mg-m)",
-                                      tbl_parm_unit = "SUVA_L.mg.m",
                                       tbl_parm_tag = "traceConstituents",
                                       round_to = 4),
                                  PACl_values <- calculate_value(column_names,
@@ -40,7 +38,6 @@ apply_calculations <- function(labdat, file_sheet_year){
                                       fn = PACl,
                                       tbl_parameter = "PACl",
                                       tbl_unit = "mg/L",
-                                      tbl_parm_unit = "PACl_mg.L",
                                       tbl_parm_tag = "operations",
                                       round_to = 1),
                                  PACl_DAE_values <- PACl_DAE(column_names,
@@ -55,7 +52,6 @@ apply_calculations <- function(labdat, file_sheet_year){
                                       fn = alum_DOC_ratio,
                                       tbl_parameter = "Alum to DOC ratio",
                                       tbl_unit = "ratio",
-                                      tbl_parm_unit = "alum_DOC",
                                       tbl_parm_tag = "operations",
                                       round_to = 2),
                                  total_THMs(column_names, labdat),
@@ -82,7 +78,6 @@ apply_calculations <- function(labdat, file_sheet_year){
                                       fn = tot_B_BG_algae,
                                       tbl_parameter = "Total Green & B-G Algae",
                                       tbl_unit = "per litre",
-                                      tbl_parm_unit = "cells.L",
                                       tbl_parm_tag = "biological",
                                       round_to = 1),
                                  removal_coag_filt(column_names, labdat, "TOC"),
@@ -138,7 +133,6 @@ det_cols <- function(parms) {
 #' @param fn function to apply to `parms`
 #' @param tbl_parameter string. New calculated parameter name
 #' @param tbl_unit string.  New calculated parameter unit
-#' @param tbl_parm_unit string. New calculated parameter parm_unit
 #' @param tbl_parm_tag string. New calculated parameter tag
 #' @param round_to numeric. Number of desired decimal places
 #'
@@ -149,7 +143,7 @@ det_cols <- function(parms) {
 #'  defined in the function description
 calculate_value <- function(column_names, labdat, parms, station_list = NULL,
                             fn,
-                            tbl_parameter, tbl_unit, tbl_parm_unit, tbl_parm_tag,
+                            tbl_parameter, tbl_unit, tbl_parm_tag,
                             round_to) {
 
   cols <- det_cols(parms)
@@ -166,7 +160,7 @@ calculate_value <- function(column_names, labdat, parms, station_list = NULL,
                               TRUE ~ result),
            result = round(result, round_to),
            parameter = tbl_parameter, unit = tbl_unit,
-           parm_unit = tbl_parm_unit, parm_eval = "calculated",
+           parm_eval = "calculated",
            parm_tag  = tbl_parm_tag ) %>%
     select(all_of(column_names))
 
@@ -245,7 +239,7 @@ suva_coag_filt <- function(column_names, labdat){
            station = case_when(!is.na(PreGAC) ~ "PreGAC",
                                TRUE ~ "Clearwell"),
            parameter = "SUVA - Coagulation, Filtration", unit ="L/(mg-m)",
-           parm_unit = "suva_L.mg.m", parm_eval = "calculated",
+           parm_eval = "calculated",
            parm_tag = "traceConstituents") %>%
     select(all_of(column_names))
 
@@ -283,7 +277,7 @@ PACl_DAE <- function(column_names, PACl_values) {
     mutate(result = .data$result*2.07,
            result = round(.data$result, 1),
            parameter = "PACl",
-           unit ="mg/L DAE", parm_unit = "PACl_mg.L.DAE",
+           unit ="mg/L DAE",
            parm_eval = "calculated", parm_tag = "operations") %>%
     select(all_of(column_names))
 
@@ -329,7 +323,7 @@ overall_coag_dose <- function(column_names, labdat, dry_alum_equiv_values) {
                                             TRUE ~ ((`PACl Train A`*2.07)+Alum)/2))),
            result = round(result, 1),
            parameter = "Overall Coagulant Dose",
-           unit ="mg/L DAE", parm_unit = "coag_dose_mg.L.DAE",
+           unit ="mg/L DAE",
            parm_eval = "calculated", parm_tag = "operations") %>%
     select(all_of(column_names))
 
@@ -364,7 +358,7 @@ tot_chlorine_dose <- function(column_names, labdat) {
            result = replace(result, result == 0, NA),
            result = round(result, 1),
            parameter = "Total Chlorine Dose", unit = "mg/L",
-           parm_unit = "tot_chlor_mg.L", parm_eval = "calculated",
+           parm_eval = "calculated",
            parm_tag = "operations") %>%
     select(all_of(column_names))
 
@@ -415,13 +409,12 @@ ion_balance <- function(column_names, labdat){
     mutate(ion_percdiff = case_when(!is.na(ion_percdiff) ~ ((cation_sum - anion_sum)/(cation_sum + anion_sum)) * 100,
                                     TRUE ~ ion_percdiff)) %>%
     pivot_longer(cols = c("anion_sum", "cation_sum", "ion_percdiff"),
-                 names_to = "parm_unit", values_to = "result") %>%
-    arrange(parm_unit) %>%
-    mutate(parameter = ifelse(parm_unit == "anion_sum", "Anion Sum",
-                              ifelse(parm_unit == "cation_sum", "Cation Sum",
-                                     ifelse(parm_unit == "ion_percdiff",
-                                            "Ion Percent Difference", NA))),
-           unit = ifelse(parm_unit == "anion_sum" | parm_unit == "cation_sum",
+                 names_to = "parameter", values_to = "result") %>%
+    mutate(parameter = case_when(parameter == "anion_sum" ~ "Anion Sum",
+                                 parameter == "cation_sum" ~ "Cation Sum",
+                                 parameter == "ion_percdiff" ~ "Ion Percent Difference")) %>%
+    arrange(parameter) %>%
+    mutate(unit = ifelse(parameter == "Anion Sum" | parameter == "Cation Sum",
                          "meq/L", "%"),
            parm_eval = "calculated",
            parm_tag = "operations",
@@ -468,7 +461,7 @@ total_THMs <- function(column_names, labdat) {
     summarise(result = ifelse(sum(result, na.rm = TRUE) > 0,
                               sum(result, na.rm = TRUE), NA)) %>%
     mutate(parameter = "Total THMs", unit = "\u00b5g/L",
-           parm_unit = "tot_THM_ug.L", parm_eval = "calculated",
+           parm_eval = "calculated",
            parm_tag = "THM") %>%
     select(all_of(column_names))
 
@@ -491,23 +484,27 @@ DO_percent <- function(column_names, labdat) {
 
   O2Table <- bpwtpR:::O2Table
 
-  parms <- c("temperature_C", "DO_mg.L")
+
+  parms <- c("Temperature", "Diss. Oxygen", "Bench Diss. Oxygen")
   # Columns required for proper calculation of df
   cols <- det_cols(parms)
 
   df <- labdat %>%
-    filter(.data$parm_unit %in% parms) %>%
+    filter(parameter == "Temperature" | parameter == "Diss. Oxygen" |
+             parameter == "Bench Diss. Oxygen") %>%
     pivot_wider(id_cols = "datasheet":"date_ymd",
-                names_from = "parm_unit", values_from = "result") %>%
-    # In case if any of the required parameters are missing
+                names_from = "parameter", values_from = "result")  %>%
     handle_missing_cols(cols) %>%
-    left_join(O2Table, by = "temperature_C") %>%
-    determine_NA_NC(5, 7) %>%
-    mutate(result = case_when(!is.na(.data$result) ~ DO_mg.L / oxy.sol_mg.L * 100,
+    left_join(O2Table, by = c("Temperature" = "temperature_C")) %>%
+    # These two parameters are equivalent but are given different names
+    mutate(DO = case_when(datasheet == "RawWater" ~ `Bench Diss. Oxygen`,
+                          datasheet == "ClearWell" ~ `Diss. Oxygen`)) %>%
+    determine_NA_NC(8, 9) %>%
+    mutate(result = case_when(!is.na(.data$result) ~ DO / oxy.sol_mg.L * 100,
                               TRUE ~ .data$result),
            result = round(.data$result, 1),
            parameter = "DO Percent", unit = "%",
-           parm_unit = "DO_perc", parm_eval = "calculated",
+           parm_eval = "calculated",
            parm_tag = "physical") %>%
     select(all_of(column_names))
 
@@ -551,7 +548,7 @@ dissolved_solids <- function(column_names, labdat) {
                               TRUE ~ result),
            result = round(result, 0),
            parameter = "Dissolved Solids", unit = "mg/L",
-           parm_unit = "DS_mg.L", parm_eval = "calculated",
+           parm_eval = "calculated",
            parm_tag = "physical") %>%
     select(all_of(column_names))
 
@@ -601,11 +598,11 @@ langelier_SatIndex <- function(column_names, labdat){
            LSI2 = case_when(!is.na(NA_NC) ~ pH - LSI2_ph_calc,
                             TRUE ~ NA_NC)) %>%
     pivot_longer(cols = c("LSI1", "LSI2"),
-                 names_to = "parm_unit", values_to = "result") %>%
-    mutate(parameter = ifelse(parm_unit == "LSI1", "Langelier Saturation Index 1",
-                              ifelse(parm_unit == "LSI2", "Langelier Saturation Index 2", NA)),
+                 names_to = "parameter", values_to = "result") %>%
+    mutate(parameter = ifelse(parameter == "LSI1", "Langelier Saturation Index 1",
+                              ifelse(parameter == "LSI2", "Langelier Saturation Index 2", NA)),
            unit = "pH units",
-           parm_unit = "langelier_calc", parm_eval = "calculated",
+           parm_eval = "calculated",
            parm_tag = "physical",
            result = round(result, 2)) %>%
     arrange(datasheet, parameter, date_ymd) %>%
@@ -650,7 +647,7 @@ turbidity_logRemoval <- function(column_names, labdat) {
            result = round(result, 1),
            datasheet = "Combined Sheets", station = "Combined Stations",
            parameter = "Turbidity Log Removal", unit = "ratio",
-           parm_unit = "turbidity_log_removal", parm_eval = "calculated",
+           parm_eval = "calculated",
            parm_tag = "physical") %>%
     select(all_of(column_names))
 
@@ -717,8 +714,6 @@ removal_coag_filt <- function(column_names, labdat, parameter){
                              raw_vs_pregac)),
            result = round(result, 3),
            datasheet = "Combined Sheets", station = "Combined Stations",
-           parm_unit = paste(ifelse(parameter == "Odour", "odour", parameter),
-                             "removal_perc", sep = "_"),
            parm_tag  = paste(ifelse(parameter == "Odour", "physical", "traceConstituents")),
            parameter = paste(parameter, "Removal - Coagulation & Filtration", sep = " "),
            unit      = "%",
@@ -766,8 +761,6 @@ removal_overall <- function(column_names, labdat, parameter){
                               TRUE ~ result),
            result = round(result, 3),
            datasheet = "Combined Sheets", station = "Combined Stations",
-           parm_unit = paste(ifelse(parameter == "Odour", "odour", parameter),
-                             "removal_perc", sep = "_"),
            parm_tag  = paste(ifelse(parameter == "Odour", "physical", "traceConstituents")),
            parameter = paste(parameter, "Removal - Overall", sep = " "),
            unit      = "%",
@@ -817,7 +810,6 @@ removal_GACfilt <- function(column_names, labdat, parameter){
            result = round(result, 3),
            datasheet = "Combined Sheets", station = "Combined Stations",
            unit      = "%",
-           parm_unit = paste(parameter, "removal_perc", sep = "_"),
            parm_eval = "calculated",
            parm_tag  = "traceConstituents",
            parameter = paste(parameter, "Removal - GAC Filtration", sep = " ")) %>%
