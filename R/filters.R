@@ -1,3 +1,8 @@
+#' Select ion rows
+#'
+#' @inheritParams scrape_labdatxls
+#'
+#' @return dataframe. All ion-related parameters
 filter_ions <- function(labdat_parameters) {
 
   labdat_parameters_ion <- labdat_parameters %>%
@@ -11,6 +16,11 @@ filter_ions <- function(labdat_parameters) {
 
 }
 
+#' Select Al rows
+#'
+#' @inheritParams scrape_labdatxls
+#'
+#' @return dataframe. All Al-related parameters
 filter_al <- function(labdat_parameters) {
 
   labdat_parameters_al <- labdat_parameters %>%
@@ -24,6 +34,11 @@ filter_al <- function(labdat_parameters) {
 
 }
 
+#' Select THM rows
+#'
+#' @inheritParams scrape_labdatxls
+#'
+#' @return dataframe. All THM-related parameters
 filter_thms <- function(labdat_parameters) {
 
   labdat_parameters_thms <- labdat_parameters %>%
