@@ -114,14 +114,35 @@ check_parameters_setup <- function(labdat_parameters) {
                "Check file requirements and parameter data."))
   }
 
+  # Check removal parameters ---------------------------------------------------
+  labdat_parameters_removal <- filter(labdat_parameters, grepl("Removal",
+                                                               labdat_parameters$parameter,
+                                                               ignore.case = TRUE))
+
+  if (any(labdat_parameters_removal$station != "Combined Stations")) {
+    warning(paste("All parameters with 'Removal' in the parameter name are",
+                  "assumed to require multiple station data to be calculated",
+                  "and should therefore be given the station 'Combined Stations'.",
+                  "\nAltering parameters.xlsx accordingly and rewriting the",
+                  "file."))
+
+    labdat_parameters <- labdat_parameters %>%
+      mutate(station = case_when(grepl("Removal", parameter, ignore.case = TRUE) &
+                                   station != "Combined Stations"
+                                 ~ "Combined Stations",
+                                 TRUE ~ station))
+  }
+
   # Checking for duplicate rows ------------------------------------------------
   if (anyDuplicated(labdat_parameters) != 0) {
     # Want to eliminate any duplicates as they will create duplicate data in final
     # dataframe
-    labdat_parameters <- unique(labdat_parameters)
+    warning("Duplicate rows were identified in parameters.xlsx. Deleting duplicates.")
 
-    write_xlsx(labdat_parameters, path_to_parameters)
+    labdat_parameters <- unique(labdat_parameters)
   }
+
+  write_xlsx(labdat_parameters, path_to_parameters)
 
   return(labdat_parameters)
 
