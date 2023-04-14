@@ -100,6 +100,20 @@ check_parameters_setup <- function(labdat_parameters) {
          call. = FALSE)
   }
 
+  # Checking DOC profile parameters --------------------------------------------
+  labdat_parameters_doc <- filter(labdat_parameters, datasheet == "DOCProfile")
+
+  # Script expects a sheet setup such that units are listed within the header
+  # columns and not on their own. Script later updates units by matching
+  # parameter names. There should be no values in the units col
+  if (any(!is.na(labdat_parameters_doc$unit))) {
+    stop(paste("Issue with parameters.xlsx input file. Expected WTP DOC sheet",
+               "setup includes no row of column solely for storing parameter",
+               "units. All units should be set to NA. Enter the desired unit",
+               "into the unit_updated column.",
+               "Check file requirements and parameter data."))
+  }
+
   # Checking for duplicate rows ------------------------------------------------
   if (anyDuplicated(labdat_parameters) != 0) {
     # Want to eliminate any duplicates as they will create duplicate data in final
