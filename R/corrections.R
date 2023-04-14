@@ -97,9 +97,9 @@ round_values <- function(labdat) {
                                  ~ as.character(round(as.numeric(result_org), 2)),
                                  # Removal values are stored as digits but
                                  # displayed as percent (0.75 vs 75%)
-                                 grepl("Removal -", parameter)
+                                 grepl("Removal", parameter, ignore.case = TRUE)
                                  ~ as.character(round(as.numeric(result_org), 3)),
-                                 grepl("SUVA", parameter)
+                                 grepl("SUVA", parameter, ignore.case = TRUE)
                                  ~ as.character(round(as.numeric(result_org), 4)),
                                  parameter == "Total THMs" |
                                    parameter == "Dissolved Solids"
@@ -121,9 +121,9 @@ round_values <- function(labdat) {
                                    parameter == "Ion Percent Difference" |
                                    parameter == "Langelier Index (RTW)"
                                  ~ round(result, 2),
-                                 grepl("Removal -", parameter)
+                                 grepl("Removal -", parameter, ignore.case = TRUE)
                                  ~ round(result, 3),
-                                 grepl("SUVA", parameter)
+                                 grepl("SUVA", parameter, ignore.case = TRUE)
                                  ~ round(result, 4),
                                  parameter == "Total THMs" |
                                    parameter == "Dissolved Solids"
@@ -180,17 +180,33 @@ update_parameters <- function(labdat, file_sheet_year,
                                         "unit"))
 
   parm_check <- labdat_mod %>%
-    filter(is.na(parm_unit)) %>%
+    filter(is.na(parameter_updated)) %>%
     distinct(datasheet, station, parameter, unit) %>%
     arrange(datasheet)
 
   if (nrow(parm_check) == 0) {
-    print("Everything good with parameters.")
+    print("All parameters were successfully matched .")
   } else {
-    print("Rows for which there exist issues with the parameters:")
+    print("The following parameters that were read in cannot be identified:")
     print.data.frame(parm_check)
-    stop("Check parameters.xlsx and ensure that these parameters are handled.",
+    stop(paste("This issue usually arises because of station assignment.\na)",
+               "If the parameter is the Raw Water datasheet,",
+               "and is associated with the `PreFM`, 'Train A', or 'Train B'",
+               "stations, rename the Parameter in the lab data file such that",
+               "the correct station name is within the parameter name. Update",
+               "parameters.xlsx accordingly.\nb)",
+               "If the parameter is the Clear Well datasheet,",
+               "and is associated with the `PreGAC`, 'Channel 1', 'Channel 2',",
+               "'PreFM' stations,  rename the Parameter in the lab data file such that",
+               "the correct station name is within the parameter name. Update",
+               "parameters.xlsx accordingly. If the parameter is a Removal",
+               "parameter (ie has 'Removal' in the parameter name), ensure that",
+               "the station is listed as 'Combined Stations' within parameters.xlsx.",
+               "\nc) If the parameter is in the WTP DOC sheet, ensure that the",
+               "station name recorded within the header rows is spelled correctly.",
+               "\nCheck file requirements and parameter data."),
          call. = FALSE)
+
   }
 
   if (file_sheet_year < 2003) {

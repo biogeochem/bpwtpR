@@ -101,9 +101,14 @@ scrape_rawwater <- function(spreadsheet, clearwell_start, labdat_parameters) {
     mutate(date_ymd = excel_numeric_to_date(as.numeric(date_ymd)),
            # As directed by Blair. Raw water THMs are only measured at the
            # PreFM stage
-           station = as.factor(ifelse(parameter %in% rw_thms$parameter |
-                                        grepl("PreFM", parameter),
-                                      "PreFM","Raw"))) %>%
+           station = as.factor(case_when(parameter %in% rw_thms$parameter |
+                                          grepl("PreFM", parameter, ignore.case = TRUE) ~
+                                         "PreFM",
+                                         grepl("Train A", parameter, ignore.case = TRUE) ~
+                                         "Train A",
+                                         grepl("Train B", parameter, ignore.case = TRUE) ~
+                                         "Train B",
+                                         TRUE ~ "Raw"))) %>%
     filter(!is.na(date_ymd)) %>%
     add_column(datasheet = "RawWater") %>%
     select(datasheet, station, parameter, unit, date_ymd, result)
@@ -143,14 +148,16 @@ scrape_clearwell <- function(spreadsheet, clearwell_start, labdat_parameters) {
                  names_to = "date_ymd", values_to = "result") %>%
     rename(parameter = Parameters, unit = Units) %>%
     mutate(date_ymd = excel_numeric_to_date(as.numeric(date_ymd)),
-           station = case_when(grepl("PreGAC", parameter)
+           station = case_when(grepl("PreGAC", parameter, ignore.case = TRUE)
                                ~ "PreGAC",
-                               grepl("Channel 1", parameter)
+                               grepl("Channel 1", parameter, ignore.case = TRUE)
                                ~ "Channel 1",
-                               grepl("Channel 2", parameter)
+                               grepl("Channel 2", parameter, ignore.case = TRUE)
                                ~ "Channel 2",
-                               grepl("PreFM", parameter)
+                               grepl("PreFM", parameter, ignore.case = TRUE)
                                ~ "PreFM",
+                               grepl("Removal", parameter, ignore.case = TRUE)
+                               ~ "Combined Stations",
                                TRUE ~ "Clearwell"),
            station = as.factor(station)) %>%
     filter(!is.na(date_ymd)) %>%
@@ -390,8 +397,7 @@ scrape_docprofiles <- function(doc_data, labdat_parameters){
                  values_to = "result") %>%
     left_join(doc_parms_list, by = "parameter") %>%
     mutate(date_ymd = excel_numeric_to_date(as.numeric(date_ymd))) %>%
-    select(datasheet, station, parameter = parameter_updated, unit = unit_updated,
-           date_ymd, result)
+    select(datasheet, station, parameter, unit, date_ymd, result)
 
   return(doc_data)
 
