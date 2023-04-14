@@ -9,6 +9,9 @@
 #' @export
 check_parameters_setup <- function(labdat_parameters) {
 
+  # To keep track of if changes have been made. If they have,
+  parameters_changed <- FALSE
+
   labdat_parameters_cols <- c("datasheet",	"station",	"parameter",
                               "parameter_updated",	"unit",
                               "unit_updated",	"parm_unit",
@@ -58,11 +61,18 @@ check_parameters_setup <- function(labdat_parameters) {
       print(sprintf("There exists a mistake with the %s column at rows:",
                     names(correct_inputs)[i]))
       print(input_mistakes[[i]])
+      print("These are the expected input values:")
+      print(correct_inputs[[i]])
     }
   }
 
   if (exists_mistake) {
-    stop("Check file requirements and parameter data.")
+    stop(paste("This indicates that an unexpected/not yet seen before value",
+               "was input.\nIf the issue positions listed above are typos that",
+               "align with the expected values, make the associated edit in",
+               "parameters.xlsx.\nIf a newdatasheet, station, parm_eval, or",
+               "parm_tag is being input into the DB, contact the tool creator."),
+         call. = TRUE)
   }
 
   # Checking for changes in Raw Water THM measurement --------------------------
@@ -75,13 +85,13 @@ check_parameters_setup <- function(labdat_parameters) {
 
   if (nrow(rw_thms) != 0) {
     print.data.frame(rw_thms)
-    stop(paste0("Issue with parameters.xlsx input file at row(s) listed above. ",
-                "Tool functions on the premise that all Raw Water THM values ",
-                "are associated with the PreFM station. Parameters file ",
-                "includes values that are do not adhere to this requirement. ",
-                "If Raw Water THM measurement locations have changed, contact ",
-                "the tool creator. Otherwise, check that parameters.xlsx is  ",
-                "filled correctly. ",
+    stop(paste("Issue with parameters.xlsx input file at row(s) listed above.",
+                "Tool functions on the premise that all Raw Water THM values",
+                "are associated with the PreFM station. Parameters file",
+                "includes values that are do not adhere to this requirement.",
+                "If Raw Water THM measurement locations have changed, contact",
+                "the tool creator. Otherwise, check that parameters.xlsx is",
+                "filled correctly.",
                 "Check file requirements and parameter data."))
   }
 
@@ -94,9 +104,11 @@ check_parameters_setup <- function(labdat_parameters) {
   if (!is_empty(which(location_nas$col != 5 & location_nas$col != 6))) {
     print.data.frame(location_nas[(which(location_nas$col != 5 &
                                            location_nas$col != 6)),])
-    stop(paste0("Issue with parameters.xlsx input file. ",
-                "Cells are missing values. Check cells at positions listed above. ",
-                "Check file requirements and parameter data."),
+    stop(paste("Issue with parameters.xlsx input file.",
+               "Cells are missing values. Check cells at positions listed above.",
+               "Only values in the unit and unit_updated columns can reasonably",
+               "have missing values.",
+               "Check file requirements and parameter data."),
          call. = FALSE)
   }
 
@@ -107,11 +119,19 @@ check_parameters_setup <- function(labdat_parameters) {
   # columns and not on their own. Script later updates units by matching
   # parameter names. There should be no values in the units col
   if (any(!is.na(labdat_parameters_doc$unit))) {
-    stop(paste("Issue with parameters.xlsx input file. Expected WTP DOC sheet",
-               "setup includes no row of column solely for storing parameter",
-               "units. All units should be set to NA. Enter the desired unit",
-               "into the unit_updated column.",
-               "Check file requirements and parameter data."))
+    parameters_changed <- TRUE
+
+    message(paste("Issue with parameters.xlsx input file. Expected WTP DOC sheet",
+                  "setup includes no row or column solely for storing parameter",
+                  "units. All DOC Profile units should be NA and will now be",
+                  "set as such. Enter the desired unit into the unit_updated",
+                  "column. \nIf the",
+                  "WTP DOC sheet setup has changed, contact tool creator."))
+
+    labdat_parameters <- labdat_parameters %>%
+      mutate(unit = case_when(datasheet == "DOCProfile" & !is.na(unit)
+                              ~ NA,
+                              TRUE ~ unit))
   }
 
   # Check removal parameters ---------------------------------------------------
@@ -120,6 +140,8 @@ check_parameters_setup <- function(labdat_parameters) {
                                                                ignore.case = TRUE))
 
   if (any(labdat_parameters_removal$station != "Combined Stations")) {
+    parameters_changed <- TRUE
+
     warning(paste("All parameters with 'Removal' in the parameter name are",
                   "assumed to require multiple station data to be calculated",
                   "and should therefore be given the station 'Combined Stations'.",
@@ -135,6 +157,8 @@ check_parameters_setup <- function(labdat_parameters) {
 
   # Checking for duplicate rows ------------------------------------------------
   if (anyDuplicated(labdat_parameters) != 0) {
+    parameters_changed <- TRUE
+
     # Want to eliminate any duplicates as they will create duplicate data in final
     # dataframe
     warning("Duplicate rows were identified in parameters.xlsx. Deleting duplicates.")
@@ -142,7 +166,11 @@ check_parameters_setup <- function(labdat_parameters) {
     labdat_parameters <- unique(labdat_parameters)
   }
 
-  write_xlsx(labdat_parameters, path_to_parameters)
+  # Something had to be changed in the parameters.xlsx doc and should be used
+  # in all future usage of this tool
+  if (parameters_changed) {
+    write_xlsx(labdat_parameters, path_to_parameters)
+  }
 
   return(labdat_parameters)
 
