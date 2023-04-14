@@ -370,8 +370,12 @@ scrape_docprofiles <- function(doc_data, labdat_parameters){
   doc_parms_list <- filter(labdat_parameters, datasheet == "DOCProfile")
 
   # The na.locf process can create excess columns, especially in later sheets
-  # where a copy-paste typo exists and ~250 columns are read in
-  doc_data <- doc_data[, !duplicated(colnames(doc_data))]
+  # where a copy-paste typo exists and ~250 columns are read in, where the last
+  # 230 columns are all given the same name. We want to remove the duplicates of
+  # the last column
+  incomparables <- setdiff(colnames(doc_data), tail(colnames(doc_data), 1))
+
+  doc_data <- doc_data[, !duplicated(colnames(doc_data), incomparables)]
 
   # Want to pull in only desired columns AND the date column
   doc_data <- doc_data[, c(names(doc_data)[(names(doc_data) %in%
