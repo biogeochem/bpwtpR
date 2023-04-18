@@ -296,14 +296,16 @@ scrape_clearwell_al <- function(spreadsheet, clearwell_start, labdat_parameters)
 #' @return data frame of the ion data
 scrape_ion_values <- function(spreadsheet, labdat_parameters) {
 
+  spreadsheet <- spreadsheet %>%
+    # Earlier weekly data spreadsheets have empty rows in between ion rows
+    filter(!is.na(Parameters))
+
   ions_parms_list <- labdat_parameters %>%
     as.data.table() %>%
     filter_ions(.) %>%
     as.data.frame()
 
   # Find where the ion values with silica included begin (desired values)
-  silica_excluded_start        <- first(which(grepl("SILICA NOT ADDED",
-                                                    spreadsheet$Parameters)))
   silica_included_start_rw     <- first(which(grepl("SILICA ADDED",
                                                     spreadsheet$Parameters)))
   silica_included_start_cw     <- nth(which(grepl("SILICA ADDED",
@@ -318,44 +320,42 @@ scrape_ion_values <- function(spreadsheet, labdat_parameters) {
                 "Parameters column. ",
                 "Check file requirements and weekly data."),
          call. = FALSE)
-  } else if (!is_empty(silica_excluded_start)) {
-    if (silica_excluded_start > silica_included_start_rw) {
-      stop(paste0("Issue with Weekly Data ion values. ",
-                  "Ion values with silica added are located before ion values ",
-                  "without silica. ",
-                  "Check file requirements and weekly data."),
-           call. = FALSE)
-    }
   }
 
-  if (length(silica_included_start_rw) == 0) {
-    # There are no ion values with silica included. We will not store any ions
-    # values in the DB
-    ions <- as.data.frame(NULL)
-  } else {
-    # There exist values with silica included (desired)
-    ions <- spreadsheet %>%
-      filter(row_number() >= silica_included_start_rw,
-             Parameters %in% ions_parms_list$parameter) %>%
-      mutate(datasheet = ifelse(row_number() >= 1 & row_number() <= nrow(.)/2,
-                              "RawWater",
-                              ifelse(row_number() >= nrow(.)/2 + 1 & row_number() <= nrow(.),
-                                    "ClearWell",
-                                    NA)),
-            station = ifelse(row_number() >= 1 & row_number() <= nrow(.)/2,
-                              "Raw",
-                              ifelse(row_number() >= nrow(.)/2 + 1 & row_number() <= nrow(.),
-                                    "Clearwell",
-                                    NA))) %>%
-      select(parameter = Parameters, unit = Units, datasheet, station,
-            everything()) %>%
-      select(!starts_with("...")) %>%
-      pivot_longer(cols = -c(parameter, unit, datasheet, station),
-                  names_to = "date_ymd", values_to = "result") %>%
-      mutate(date_ymd = excel_numeric_to_date(as.numeric(date_ymd))) %>%
-      filter(!is.na(date_ymd)) %>%
-      select(datasheet, station, parameter, unit, date_ymd, result)
+  ions <- spreadsheet %>%
+    mutate(datasheet = case_when(row_number() > silica_included_start_rw &
+                                   row_number() <= silica_included_start_rw + 3
+                                 ~ "RawWater",
+                                 row_number() > silica_included_start_cw &
+                                   row_number() <= silica_included_start_cw + 3
+                                 ~ "ClearWell"),
+           station   = case_when(row_number() > silica_included_start_rw &
+                                   row_number() <= silica_included_start_rw + 3
+                                 ~ "Raw",
+                                 row_number() > silica_included_start_cw &
+                                   row_number() <= silica_included_start_cw + 3
+                                 ~ "Clearwell")) %>%
+    filter(!is.na(station),
+           # Don't want to read in Difference values, just % Difference
+           !grepl("^difference$", Parameters, ignore.case = TRUE))
+
+  if (any(!ions$Parameters %in% ions_parms_list$parameter)) {
+    stop(paste("There is an issue with the ions section of the weekly data.",
+               "The tool expects that the three rows after the Raw Silica Added",
+               "and Clearwell Silica Added titles are ion values.",
+               "Check file requirements and weekly data."),
+         call. = FALSE)
   }
+
+  ions <- ions %>%
+    select(parameter = Parameters, unit = Units, datasheet, station,
+          everything()) %>%
+    select(!starts_with("...")) %>%
+    pivot_longer(cols = -c(parameter, unit, datasheet, station),
+                names_to = "date_ymd", values_to = "result") %>%
+    mutate(date_ymd = excel_numeric_to_date(as.numeric(date_ymd))) %>%
+    filter(!is.na(date_ymd)) %>%
+    select(datasheet, station, parameter, unit, date_ymd, result)
 
   return(ions)
 
