@@ -102,6 +102,10 @@ read_doc <- function(path_to_labdat_file) {
                          date_start[1,2]:ncol(doc_data)]
   }
 
+
+  # Account for some earlier files having different column name
+  names(doc_data)[grepl("date", names(doc_data), ignore.case = TRUE)] <- "Sample Date"
+
   # There is a typo in WTP DOC profile, where a date is entered as "29Jan-18"
   if (any(doc_data$`Sample Date` == "29Jan-18", na.rm = TRUE)) {
     error_spot <- which(doc_data$`Sample Date` == "29Jan-18")
