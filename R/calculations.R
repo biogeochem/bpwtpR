@@ -484,6 +484,21 @@ DO_percent <- function(column_names, labdat) {
 
   O2Table <- bpwtpR:::O2Table
 
+  # O2Table was sent by Blair and only accounts for 0.1 degree C jumps between
+  # temperature values. (O2Table is used to calculate DO percent)
+  temp_vals <- labdat %>%
+    filter(parameter == "Temperature",
+           round(result, digits = 1) != result)
+
+  if (nrow(filter(temp_vals, round(result, digits = 1) != result)) != 0) {
+    warning(paste("The tool has detected temperature values with greater than 1",
+                  "decimal place. Note that tool uses a lookup table and",
+                  "requires that temperature values have 1 decimal place to",
+                  "accurately recalculate DO percent.\nThe final tool output",
+                  "will still store the DO percent values from the lab data",
+                  "file but will not contain any script-calculated DO percent",
+                  "values."))
+  }
 
   parms <- c("Temperature", "Diss. Oxygen", "Bench Diss. Oxygen")
   # Columns required for proper calculation of df

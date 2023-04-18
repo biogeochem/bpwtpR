@@ -182,9 +182,7 @@ update_parameters <- function(labdat, file_sheet_year,
     distinct(datasheet, station, parameter, unit) %>%
     arrange(datasheet)
 
-  if (nrow(parm_check) == 0) {
-    print("All parameters were successfully matched .")
-  } else {
+  if (nrow(parm_check) != 0) {
     print("The following parameters that were read in cannot be identified:")
     print.data.frame(parm_check)
     stop(paste("This issue usually arises because of station assignment.\na)",

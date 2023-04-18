@@ -23,10 +23,10 @@
 #' @importFrom stats complete.cases
 #' @importFrom janitor excel_numeric_to_date
 #' @importFrom tidyr pivot_longer replace_na pivot_wider
-#' @importFrom utils read.table read.csv write.table write.csv
+#' @importFrom utils read.table read.csv write.table write.csv tail
 #' @importFrom readxl read_excel excel_sheets read_xlsx
 #' @importFrom data.table setnames as.data.table fsetdiff
-#' @importFrom stringr str_remove str_extract str_split str_subset
+#' @importFrom stringr str_remove str_extract str_split str_subset str_detect
 #' @importFrom stats sd
 #' @importFrom tidyselect all_of starts_with everything contains
 #' @importFrom rlang .data is_empty
@@ -140,8 +140,6 @@ prepare_labdat <- function(path_to_labdat_file,
   print("Updating parameters...")
   new_data <- update_parameters(new_data, file_sheet_year, labdat_parameters)
 
-  print("Correcting detection limit, removing values calculated in-sheet...")
-
   new_data <- new_data %T>%
     # Warning arises when script converts certain results to numeric format
     # (ex "--" as an indicator for an incalculable value), but
@@ -179,7 +177,9 @@ prepare_labdat <- function(path_to_labdat_file,
   new_data_calcs_not_combo <- new_data_calcs %>%
     filter(datasheet != "Combined Sheets") %T>%
     {options(warn = -1)} %>%
-    left_join(new_data_calc_insheet) %T>%
+    left_join(new_data_calc_insheet,
+              by= c("datasheet", "sheet_year", "station", "date_ymd",
+                    "parameter", "unit", "parm_tag")) %T>%
     {options(warn = 0)} %>%
     select(datasheet, sheet_year, station, date_ymd,
            parameter, unit,	parm_eval, parm_tag,
@@ -191,7 +191,8 @@ prepare_labdat <- function(path_to_labdat_file,
     # Different join() statement needed compared to above because datasheet and
     # station values for these values differ from those listed in the yearly
     # labdat files (here: "Combined", in sheet = "Raw" | "Clearwell")
-    left_join(select(new_data_calc_insheet, !c(datasheet, station))) %T>%
+    left_join(select(new_data_calc_insheet, !c(datasheet, station)),
+              by = c("sheet_year", "date_ymd", "parameter", "unit", "parm_tag")) %T>%
     {options(warn = 0)} %>%
     select(datasheet, sheet_year, station, date_ymd,
            parameter, unit,	parm_eval, parm_tag,
@@ -201,7 +202,6 @@ prepare_labdat <- function(path_to_labdat_file,
     mutate(result_flag = replace_na(result_flag, ""))
 
   # Combining measured and calculated data -------------------------------------
-  print("Appending new data...")
   new_data <- new_data %>%
     filter(!(parm_eval == "calculated_insheet" & datasheet != "DOCProfile" &
                parameter != "Langelier Index (RTW)")) %>%
@@ -219,7 +219,7 @@ prepare_labdat <- function(path_to_labdat_file,
     mutate_if(is.character, as.factor)
 
   # Putting new data in database -----------------------------------------------
-  print("Updating file...")
+  print("Updating database file...")
 
   # Saving as csv converts NaN to NA. Setting NaN as -999999 for now in case if
   # Stephen (the DB expert) has some work around to this conversion for Access
@@ -245,8 +245,8 @@ prepare_labdat <- function(path_to_labdat_file,
                                  sep = ","))
   }
 
-  return(new_data)
-
   print("Database updated.")
+
+  return(new_data)
 
 }

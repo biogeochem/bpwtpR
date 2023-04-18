@@ -18,42 +18,42 @@
 #'
 #' Read in all data contained in the Weekly (1st) sheet of the lab data file.
 #'
-#' @param spreadsheet dataframe. Raw weekly data outputted from read_weekly()
+#' @param weekly_data dataframe. Raw weekly data outputted from read_weekly()
 #' @param labdat_parameters dataframe. Output from check_parameters_content
 #'
 #' @return data frame of all the data contained in the Weekly lab data file
-scrape_labdatxls <- function(spreadsheet, labdat_parameters) {
+scrape_labdatxls <- function(weekly_data, labdat_parameters) {
 
-  if (colnames(spreadsheet)[1] != "Parameters") {
-    stop(paste0("Issue with weekly data column names. ",
-                "Do column names start on row 8? ",
-                "Is the parameters column correctly named as \"Parameters\"? ",
-                "Check file requirements and weekly data."),
+  if (colnames(weekly_data)[1] != "Parameters") {
+    stop(paste("Issue with weekly data column names.",
+               "Do column names start on row 8?",
+               "Is the parameters column correctly named as \"Parameters\"?",
+               "Check file requirements and weekly data."),
          call. = FALSE)
   }
 
-  clearwell_start <- which(spreadsheet$Parameters == "CLEAR WELL")
+  clearwell_start <- which(weekly_data$Parameters == "CLEAR WELL")
 
   if (is_empty(clearwell_start)) {
-    stop(paste0("Issue with the start of the Clear Well data. ",
-                "Is the start identified with the string \"CLEAR WELL\"? ",
-                "Check file requirements and weekly data."),
+    stop(paste("Issue with the start of the Clear Well data.",
+               "Is the start identified with the string \"CLEAR WELL\"?",
+               "Check file requirements and weekly data."),
          call. = FALSE)
   }
 
-  rawwater        <- scrape_rawwater(      spreadsheet,
+  rawwater        <- scrape_rawwater(      weekly_data,
                                            clearwell_start,
                                            labdat_parameters)
-  clearwell       <- scrape_clearwell(     spreadsheet,
+  clearwell       <- scrape_clearwell(     weekly_data,
                                            clearwell_start,
                                            labdat_parameters)
-  clearwell_THMs  <- scrape_clearwell_thms(spreadsheet,
+  clearwell_THMs  <- scrape_clearwell_thms(weekly_data,
                                            clearwell_start,
                                            labdat_parameters)
-  clearwell_al    <- scrape_clearwell_al(  spreadsheet,
+  clearwell_al    <- scrape_clearwell_al(  weekly_data,
                                            clearwell_start,
                                            labdat_parameters)
-  ion_values      <- scrape_ion_values(    spreadsheet,
+  ion_values      <- scrape_ion_values(    weekly_data,
                                            labdat_parameters)
 
   new_data_weekly <- bind_rows(rawwater, clearwell, clearwell_THMs,
@@ -68,14 +68,14 @@ scrape_labdatxls <- function(spreadsheet, labdat_parameters) {
 #' Read in raw water data from the Weekly (1st) sheet of the lab data file.
 #' Identify parameters to read in based on parameters.xlsx
 #'
-#' @param spreadsheet dataframe. All data in the Weekly sheet of the lab data file
+#' @param weekly_data dataframe. All data in the Weekly sheet of the lab data file
 #' @param clearwell_start numeric value. The start of the Clearwell data as
 #'  indicated by the phrase "CLEAR WELL" in the Parameters column of the Weekly
 #'  data
 #' @inheritParams scrape_labdatxls
 #'
 #' @return data frame of the raw water data
-scrape_rawwater <- function(spreadsheet, clearwell_start, labdat_parameters) {
+scrape_rawwater <- function(weekly_data, clearwell_start, labdat_parameters) {
 
   rw_parms_list <- labdat_parameters %>%
     filter(datasheet == "RawWater") %>%
@@ -91,7 +91,7 @@ scrape_rawwater <- function(spreadsheet, clearwell_start, labdat_parameters) {
     filter_thms(.) %>%
     as.data.frame()
 
-  rawwater <- spreadsheet %>%
+  rawwater <- weekly_data %>%
     filter(row_number() < clearwell_start - 1) %>%
     filter(Parameters %in% rw_parms_list$parameter) %>%
     select(!starts_with("...")) %>%
@@ -125,7 +125,7 @@ scrape_rawwater <- function(spreadsheet, clearwell_start, labdat_parameters) {
 #' @inheritParams scrape_rawwater
 #'
 #' @return data frame of the Clearwell data (excluding THMs and Al)
-scrape_clearwell <- function(spreadsheet, clearwell_start, labdat_parameters) {
+scrape_clearwell <- function(weekly_data, clearwell_start, labdat_parameters) {
 
   # Aluminum, THMs, and ion values are read in separately
   cw_parms_list <- labdat_parameters %>%
@@ -140,7 +140,7 @@ scrape_clearwell <- function(spreadsheet, clearwell_start, labdat_parameters) {
     as.data.frame()
 
   # based on premise that the aluminum and THMs are NOT read in here
-  clearwell <- spreadsheet %>%
+  clearwell <- weekly_data %>%
     filter(row_number() > clearwell_start) %>%
     filter(Parameters %in% cw_parms_list$parameter) %>%
     select(!starts_with("...")) %>%
@@ -177,7 +177,7 @@ scrape_clearwell <- function(spreadsheet, clearwell_start, labdat_parameters) {
 #' @inheritParams scrape_rawwater
 #'
 #' @return data frame of the Clearwell THMs data
-scrape_clearwell_thms <- function(spreadsheet, clearwell_start, labdat_parameters) {
+scrape_clearwell_thms <- function(weekly_data, clearwell_start, labdat_parameters) {
 
   # Expecting consistently 4 THM rows for each of Clearwell, Channel, PreGAC
   cw_thms_parms_list <- labdat_parameters %>%
@@ -186,7 +186,7 @@ scrape_clearwell_thms <- function(spreadsheet, clearwell_start, labdat_parameter
     filter_thms(.) %>%
     as.data.frame()
 
-  clearwell_THMs <- spreadsheet %>%
+  clearwell_THMs <- weekly_data %>%
     filter(row_number() > clearwell_start) %>%
     select(!starts_with("...")) %>%
     filter(Parameters %in% cw_thms_parms_list$parameter) %>%
@@ -198,9 +198,9 @@ scrape_clearwell_thms <- function(spreadsheet, clearwell_start, labdat_parameter
                                ~ "PreGAC"))
 
   if (nrow(clearwell_THMs) != 15) {
-    stop(paste0("Issue with Clear Well THMs. ",
-                "Too many rows were identified. There should be 15. ",
-                "Check file requirements and weekly data."),
+    stop(paste("Issue with Clear Well THMs.",
+               "Too many rows were identified. There should be 15.",
+               "Check file requirements and weekly data."),
          call. = FALSE)
   }
 
@@ -227,7 +227,7 @@ scrape_clearwell_thms <- function(spreadsheet, clearwell_start, labdat_parameter
 #' @inheritParams scrape_rawwater
 #'
 #' @return data frame of the Clearwell aluminum data
-scrape_clearwell_al <- function(spreadsheet, clearwell_start, labdat_parameters) {
+scrape_clearwell_al <- function(weekly_data, clearwell_start, labdat_parameters) {
 
   # Expecting parameters that look like:
   # "Aluminum (dissolved 0.45\u00b5)",
@@ -242,15 +242,15 @@ scrape_clearwell_al <- function(spreadsheet, clearwell_start, labdat_parameters)
     filter_al(.) %>%
     as.data.frame()
 
-  clearwell_Al <- spreadsheet %>%
+  clearwell_Al <- weekly_data %>%
     filter(row_number() > clearwell_start) %>%
     select(!starts_with("...")) %>%
     filter(Parameters %in% cw_al_parms_list$parameter)
 
   if (nrow(clearwell_Al) != 7) {
-    stop(paste0("Issue with Clear Well Aluminum values. ",
-                "Too many rows were identified. There should be 7. ",
-                "Check file requirements and weekly data."),
+    stop(paste("Issue with Clear Well Aluminum values.",
+               "Too many rows were identified. There should be 7.",
+               "Check file requirements and weekly data."),
          call. = FALSE)
   }
 
@@ -294,10 +294,10 @@ scrape_clearwell_al <- function(spreadsheet, clearwell_start, labdat_parameters)
 #' @inheritParams scrape_rawwater
 #'
 #' @return data frame of the ion data
-scrape_ion_values <- function(spreadsheet, labdat_parameters) {
+scrape_ion_values <- function(weekly_data, labdat_parameters) {
 
-  spreadsheet <- spreadsheet %>%
-    # Earlier weekly data spreadsheets have empty rows in between ion rows
+  weekly_data <- weekly_data %>%
+    # Earlier weekly data weekly_datas have empty rows in between ion rows
     filter(!is.na(Parameters))
 
   ions_parms_list <- labdat_parameters %>%
@@ -306,23 +306,27 @@ scrape_ion_values <- function(spreadsheet, labdat_parameters) {
     as.data.frame()
 
   # Find where the ion values with silica included begin (desired values)
-  silica_included_start_rw     <- first(which(grepl("SILICA ADDED",
-                                                    spreadsheet$Parameters)))
-  silica_included_start_cw     <- nth(which(grepl("SILICA ADDED",
-                                                  spreadsheet$Parameters)),
-                                      2)
+  silica_included_start_rw     <- which(grepl("RAW.*SILICA ADDED",
+                                              weekly_data$Parameters,
+                                              ignore.case = TRUE))
+  silica_included_start_cw     <- which(grepl("TREATED.*SILICA ADDED",
+                                              weekly_data$Parameters,
+                                              ignore.case = TRUE))
 
-
-  if (is.na(silica_included_start_rw) | is.na(silica_included_start_cw)) {
-    stop(paste0("Issue with Weekly Data ion values. ",
-                "Could not identify the start of either the raw or Clearwell ",
-                "ion values through the phrase `SILICA ADDED` in the ",
-                "Parameters column. ",
-                "Check file requirements and weekly data."),
+  if (length(silica_included_start_rw) != 1 |
+      length(silica_included_start_cw) != 1) {
+    stop(paste("Issue with Weekly Data ion values.",
+               "Could not identify the start of either the raw or Clearwell",
+               "ion values by looking for Parameters that contain the words",
+               "'RAW' and `SILICA ADDED`, and 'TREATED' and 'SILICA ADDED' in",
+               "the Parameters column.\nEither these phrases are missing in",
+               "the weekly spreadsheet or are matched more than once. Please",
+               "alter weekly spreadsheet accordingly.",
+               "\nCheck file requirements and weekly data"),
          call. = FALSE)
   }
 
-  ions <- spreadsheet %>%
+  ions <- weekly_data %>%
     mutate(datasheet = case_when(row_number() > silica_included_start_rw &
                                    row_number() <= silica_included_start_rw + 3
                                  ~ "RawWater",
@@ -342,8 +346,11 @@ scrape_ion_values <- function(spreadsheet, labdat_parameters) {
   if (any(!ions$Parameters %in% ions_parms_list$parameter)) {
     stop(paste("There is an issue with the ions section of the weekly data.",
                "The tool expects that the three rows after the Raw Silica Added",
-               "and Clearwell Silica Added titles are ion values.",
-               "Check file requirements and weekly data."),
+               "and Treated Silica Added titles contain ion values. One or more",
+               "of those six rows cannot be identified as an ion value as it is",
+               "not present in parameters.xlsx. Check which 6 rows are located",
+               "under the ion section titles and ensure they are in parameters.xlsx.",
+               "\nCheck file requirements and weekly data."),
          call. = FALSE)
   }
 

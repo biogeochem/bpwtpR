@@ -19,9 +19,11 @@ check_parameters_setup <- function(labdat_parameters) {
 
   # Checking col names ---------------------------------------------------------
   if (!identical(colnames(labdat_parameters), labdat_parameters_cols)) {
-    stop(paste0("Issue with parameters.xlsx input file. ",
-                "Column names have been edited. ",
-                "Check file requirements and parameter data."),
+    stop(paste("Issue with parameters.xlsx input file.",
+               "Column names have been edited.",
+               sprintf("Expected column names are: %s",
+                       paste(paste0("tbl_", labdat_parameters_cols), collapse = ' ')),
+               "Check file requirements and parameter data."),
          call. = FALSE)
   }
 
@@ -29,7 +31,8 @@ check_parameters_setup <- function(labdat_parameters) {
   # Want to make sure that these columns are named consistently. Just handling
   # upper and lowercase issues because strings can be very similar - fuzzy
   # matching can cause other issues. User will be required to fix any mistakes
-  # that a simple gsub cannot fix
+  # that a simple gsub cannot fix. If these are updated ensure that their
+  # assignment in scrape.R is updated as well.
   correct_inputs <- list(datasheet = c("ClearWell", "RawWater", "DOCProfile"),
                          station   = c("Clearwell", "Raw", "PreGAC/Clearwell",
                                        "PreGAC", "PreFM", "FM",
@@ -60,7 +63,8 @@ check_parameters_setup <- function(labdat_parameters) {
       exists_mistake <- TRUE
       print(sprintf("There exists a mistake with the %s column at rows:",
                     names(correct_inputs)[i]))
-      print(input_mistakes[[i]])
+      # +1 to account for the header row
+      print(input_mistakes[[i]]+1)
       print("These are the expected input values:")
       print(correct_inputs[[i]])
     }
@@ -68,14 +72,18 @@ check_parameters_setup <- function(labdat_parameters) {
 
   # User needs to contact tool creator if a new station in particular has been
   # added because station assignment is hard-coded. If a new one is added, the
-  # script will NOT assign it accurately. Edits must be made to scrape.R
+  # script will NOT assign it accurately. Edits must be made to scrape.R.
+  # In checking the parm_eval and parm_tag, the biggest motivation is making sure
+  # that typos are minimized such that the script can filter accurately. If a new
+  # one of these is added, add it into correct_inputs above to make sure that
+  # they do not contain any typos
   if (exists_mistake) {
     stop(paste("This indicates that an unexpected/not yet seen before value",
                "was input.\nIf the issue positions listed above are typos that",
                "align with the expected values, make the associated edit in",
-               "parameters.xlsx.\nIf a new datasheet, station, parm_eval, or",
+               "parameters.xlsx.\nIf a new datasheet or station, parm_eval, or",
                "parm_tag is being input into the DB, contact the tool creator."),
-         call. = TRUE)
+         call. = FALSE)
   }
 
   # Checking for changes in Raw Water THM measurement --------------------------
@@ -95,7 +103,99 @@ check_parameters_setup <- function(labdat_parameters) {
                 "If Raw Water THM measurement locations have changed, contact",
                 "the tool creator. Otherwise, check that parameters.xlsx is",
                 "filled correctly.",
-                "Check file requirements and parameter data."))
+                "\nCheck file requirements and parameter data."),
+         call. = FALSE)
+  }
+
+  # Checking listed stations for Raw datasheet vals ----------------------------
+
+  # Want the only params that have station != Raw to be THMs and params w PreFM,
+  # Train A, Train B in the param name
+  rw <- labdat_parameters %>%
+    # Have already determined that THMs were done correctly and do not need to
+    # be rechecked
+    as.data.table() %>%
+    fsetdiff(filter_thms(.)) %>%
+    as.data.frame() %>%
+    filter(datasheet == "RawWater",
+           station != "Raw")
+
+  rw_issues <- rw %>%
+    filter(rw$station == "Train A" &
+             !agrepl("Train ?A", rw$parameter, ignore.case = TRUE) |
+           rw$station == "Train B" &
+             !agrepl("Train ?B", rw$parameter, ignore.case = TRUE) |
+           rw$station == "PreFM" &
+             !agrepl("PreFM", rw$parameter, ignore.case = TRUE))
+
+  if (nrow(rw_issues) != 0) {
+    print.data.frame(rw_issues)
+    stop(paste("Issue with parameters.xlsx input file at row(s) listed above.",
+               "The tool functions on the premise that all Raw Water values are",
+               "associated with the Raw station EXCEPT for parameters with",
+               "the station names 'Train A', 'Train B', 'PreFM' within the parameter",
+               "name AND Raw THMs.\nIf any of the parameters printed above are associated",
+               "with one of these stations, update the parameter name to contain",
+               "the station name and update parameters.xlsx accordingly.\nIf",
+               "a new station is being input into the DB, contact the tool",
+               "creator.\nCheck file requirements and parameter data."),
+         call. = FALSE)
+  }
+
+  # Checking listed stations for Clearwell datasheet vals ----------------------------
+
+  # Want the only params that have station != Clearwell to be those listed below
+  cw <- labdat_parameters %>%
+    # Have already determined that THMs were done correctly and do not need to
+    # be rechecked
+    as.data.table() %>%
+    fsetdiff(filter_thms(.)) %>%
+    fsetdiff(filter_al(.)) %>%
+    as.data.frame() %>%
+    filter(datasheet == "ClearWell",
+           station != "Clearwell")
+
+  # These matches come from those within scrape.R. If one changes, change the other too
+  cw_issues <- cw %>%
+    filter(cw$station == "PreGAC" &
+             !grepl("PreGAC", parameter, ignore.case = TRUE) |
+           cw$station == "MMF1" &
+             !grepl("MM ?F ?1", parameter, ignore.case = TRUE) |
+           cw$station == "MMF12" &
+             !grepl("MM ?F ?12", parameter, ignore.case = TRUE) |
+           cw$station == "MMFA" &
+             !grepl("MM ?F ?A", parameter, ignore.case = TRUE) |
+           cw$station == "MMFL" &
+             !grepl("MM ?F ?L", parameter, ignore.case = TRUE) |
+           cw$station == "Channel" &
+             !grepl("Channel(?! ?[12])", parameter, ignore.case = TRUE,
+                    perl = TRUE) |
+           cw$station == "Channel 1" &
+             !grepl("Channel ?1", parameter, ignore.case = TRUE,
+                    perl = TRUE) |
+           cw$station == "Channel 2" &
+             !grepl("Channel ?2", parameter, ignore.case = TRUE) |
+           cw$station == "PreFM" &
+             !grepl("PreFM", parameter, ignore.case = TRUE) |
+           cw$station == "FM" &
+             !grepl("(?<!Pre)FM", parameter, ignore.case = TRUE,
+                    perl = TRUE))
+
+  if (nrow(cw_issues) != 0) {
+    print.data.frame(cw_issues)
+    stop(paste("Issue with parameters.xlsx input file at row(s) listed above.",
+               "The tool functions on the premise that all Clear Well values are",
+               "associated with the Clearwell station EXCEPT for THM and Al",
+               "parameters and those with acceptable Clearwell station names",
+               "within the parameter name. Those stations are: PreGAC, PreFM, FM",
+               "Train A, Train B, MMF1, MMF12, MMFA, MMFL, Channel, Channel 1,",
+               "Channel 2.",
+               "\nIf any of the parameters printed above are associated",
+               "with one of these stations, update the parameter name to contain",
+               "the station name and update parameters.xlsx accordingly.\nIf",
+               "a new station is being input into the DB, contact the tool",
+               "creator.\nCheck file requirements and parameter data."),
+         call. = FALSE)
   }
 
   # Checking for NAs -----------------------------------------------------------
@@ -124,11 +224,12 @@ check_parameters_setup <- function(labdat_parameters) {
   if (any(!is.na(labdat_parameters_doc$unit))) {
     parameters_changed <- TRUE
 
-    message(paste("Issue with parameters.xlsx input file. Expected WTP DOC sheet",
+    message(paste("Expected WTP DOC sheet",
                   "setup includes no row or column solely for storing parameter",
-                  "units. All DOC Profile units should be NA and will now be",
+                  "units. All DOC Profile units within parameters.xlsx should be",
+                  "empty and will now be",
                   "set as such. Enter the desired unit into the unit_updated",
-                  "column. \nIf the",
+                  "column. If the",
                   "WTP DOC sheet setup has changed, contact tool creator."))
 
     labdat_parameters <- labdat_parameters %>%
@@ -145,10 +246,10 @@ check_parameters_setup <- function(labdat_parameters) {
   if (any(labdat_parameters_removal$station != "Combined Stations")) {
     parameters_changed <- TRUE
 
-    warning(paste("All parameters with 'Removal' in the parameter name are",
+    message(paste("All parameters with 'Removal' in the parameter name are",
                   "assumed to require multiple station data to be calculated",
                   "and should therefore be given the station 'Combined Stations'.",
-                  "\nAltering parameters.xlsx accordingly and rewriting the",
+                  "Altering parameters.xlsx accordingly and rewriting the",
                   "file."))
 
     labdat_parameters <- labdat_parameters %>%
@@ -164,18 +265,30 @@ check_parameters_setup <- function(labdat_parameters) {
 
     # Want to eliminate any duplicates as they will create duplicate data in final
     # dataframe
-    warning("Duplicate rows were identified in parameters.xlsx. Deleting duplicates.")
+    message("Duplicate rows were identified in parameters.xlsx. Deleting duplicates.")
 
     labdat_parameters <- unique(labdat_parameters)
   }
 
+  # Rewriting parameters.xlsx if needed ----------------------------------------
   # Something had to be changed in the parameters.xlsx doc and should be used
   # in all future usage of this tool
   if (parameters_changed) {
     # Blair would like colnames to start with "tbl_"
     colnames(labdat_parameters) <- paste("tbl", colnames(labdat_parameters), sep = "_")
-    write_xlsx(labdat_parameters, path_to_parameters)
+
+    try_write <- try(write_xlsx(labdat_parameters, path_to_parameters),
+                     silent = TRUE)
+
+    if (class(try_write) == "try-error") {
+      stop(paste("Was unable to perform the required rewrites to parameters.xlsx.",
+                 "If the document is open, close it and try again. Otherwise,",
+                 "ensure that your computer permissions allow this tool to",
+                 "perform rewrites."))
+    }
   }
+
+  print("Successfully checked parameters.xlsx. Continue with use of tool.")
 
   return(labdat_parameters)
 
@@ -201,18 +314,18 @@ check_parameters_rwcw <- function(path_to_labdat_file, path_to_parameters) {
 
   # To keep track of which position missing rows exist so that user can better
   # see where they are in the lab data file
-  spreadsheet <- path_to_labdat_file %>%
+  weekly_data <- path_to_labdat_file %>%
     read_weekly(skip_num) %>%
     mutate(`Row Number` = row_number() + skip_num + 1)
 
-  clearwell_start <- which(spreadsheet$Parameters == "CLEAR WELL")
-  clearwell_end   <- first(which(grepl(x = spreadsheet$Parameters,
+  clearwell_start <- which(weekly_data$Parameters == "CLEAR WELL")
+  clearwell_end   <- first(which(grepl(x = weekly_data$Parameters,
                                        pattern = "ion balance",
                                        ignore.case = TRUE)))
 
   # Usually, section headers are identified by all characters being in CAPS.
   # These can be ignored when determining which Parameters were not read in
-  missing_params <- spreadsheet %>%
+  missing_params <- weekly_data %>%
     group_by(Parameters, Units) %>%
     summarise() %>%
     left_join(labdat_parameters, by = c("Parameters" = "parameter",
@@ -222,7 +335,7 @@ check_parameters_rwcw <- function(path_to_labdat_file, path_to_parameters) {
            str_detect(Parameters,
                       "^(([[:upper:]]*\\d*[[:punct:]]*)\\s?)*$",
                       negate = TRUE)) %>%
-    left_join(spreadsheet, by = c("Parameters", "Units"), multiple = "all") %>%
+    left_join(weekly_data, by = c("Parameters", "Units"), multiple = "all") %>%
     select(`Row Number`, Parameters, Units) %>%
     arrange(`Row Number`)
 
@@ -264,11 +377,11 @@ check_parameters_doc <- function(path_to_labdat_file, path_to_parameters) {
     check_parameters_setup() %>%
     filter(datasheet == "DOCProfile")
 
-  spreadsheet <- read_doc(path_to_labdat_file)
+  weekly_data <- read_doc(path_to_labdat_file)
 
-  missing_params <- setdiff(colnames(spreadsheet), labdat_parameters$parameter)
+  missing_params <- setdiff(colnames(weekly_data), labdat_parameters$parameter)
 
-  missing_params <- missing_params[grep("date", missing_params,
+  missing_params <- missing_params[grep("(date)|(DOC % Removal)", missing_params,
                                         ignore.case = TRUE, invert = TRUE)]
 
   if (!is_empty(missing_params)) {
