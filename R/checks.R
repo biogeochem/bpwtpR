@@ -66,11 +66,14 @@ check_parameters_setup <- function(labdat_parameters) {
     }
   }
 
+  # User needs to contact tool creator if a new station in particular has been
+  # added because station assignment is hard-coded. If a new one is added, the
+  # script will NOT assign it accurately. Edits must be made to scrape.R
   if (exists_mistake) {
     stop(paste("This indicates that an unexpected/not yet seen before value",
                "was input.\nIf the issue positions listed above are typos that",
                "align with the expected values, make the associated edit in",
-               "parameters.xlsx.\nIf a newdatasheet, station, parm_eval, or",
+               "parameters.xlsx.\nIf a new datasheet, station, parm_eval, or",
                "parm_tag is being input into the DB, contact the tool creator."),
          call. = TRUE)
   }
@@ -196,30 +199,31 @@ check_parameters_rwcw <- function(path_to_labdat_file, path_to_parameters) {
 
   skip_num <- 7
 
-  spreadsheet <- read_weekly(path_to_labdat_file, skip_num)
+  # To keep track of which position missing rows exist so that user can better
+  # see where they are in the lab data file
+  spreadsheet <- path_to_labdat_file %>%
+    read_weekly(skip_num) %>%
+    mutate(`Row Number` = row_number() + skip_num + 1)
 
   clearwell_start <- which(spreadsheet$Parameters == "CLEAR WELL")
   clearwell_end   <- first(which(grepl(x = spreadsheet$Parameters,
                                        pattern = "ion balance",
                                        ignore.case = TRUE)))
 
-  new_data_weekly <- scrape_labdatxls(spreadsheet, labdat_parameters)
-
-  # To keep track of which position missing rows exist so that user can better
-  # see where they are in the lab data file
-  spreadsheet <- spreadsheet %>%
-    mutate(`Row Number` = row_number() + skip_num + 1) %>%
-    select(`Row Number`, Parameters)
-
   # Usually, section headers are identified by all characters being in CAPS.
   # These can be ignored when determining which Parameters were not read in
-  missing_params <- data.frame(
-    Parameters = str_subset(setdiff(spreadsheet$Parameters,
-                                    new_data_weekly$parameter),
-                            "^(([[:upper:]]*\\d*[[:punct:]]*)\\s?)*$",
-                            negate = TRUE)) %>%
-    left_join(spreadsheet, multiple = "all", by = "Parameters") %>%
-    select(`Row Number`, Parameters) %>%
+  missing_params <- spreadsheet %>%
+    group_by(Parameters, Units) %>%
+    summarise() %>%
+    left_join(labdat_parameters, by = c("Parameters" = "parameter",
+                                        "Units" = "unit"),
+              multiple = "all") %>%
+    filter(is.na(parameter_updated),
+           str_detect(Parameters,
+                      "^(([[:upper:]]*\\d*[[:punct:]]*)\\s?)*$",
+                      negate = TRUE)) %>%
+    left_join(spreadsheet, by = c("Parameters", "Units"), multiple = "all") %>%
+    select(`Row Number`, Parameters, Units) %>%
     arrange(`Row Number`)
 
   if (!is_empty(missing_params)) {
@@ -254,6 +258,7 @@ check_parameters_rwcw <- function(path_to_labdat_file, path_to_parameters) {
 #'
 #' @export
 check_parameters_doc <- function(path_to_labdat_file, path_to_parameters) {
+
   labdat_parameters <- path_to_parameters %>%
     read_parameters() %>%
     check_parameters_setup() %>%
