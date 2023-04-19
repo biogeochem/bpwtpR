@@ -491,7 +491,7 @@ DO_percent <- function(column_names, labdat) {
            round(result, digits = 1) != result)
 
   if (nrow(filter(temp_vals, round(result, digits = 1) != result)) != 0) {
-    warning(paste("The tool has detected temperature values with greater than 1",
+    message(paste("The tool has detected temperature values with greater than 1",
                   "decimal place. Note that tool uses a lookup table and",
                   "requires that temperature values have 1 decimal place to",
                   "accurately recalculate DO percent.\nThe final tool output",
@@ -660,7 +660,7 @@ turbidity_logRemoval <- function(column_names, labdat) {
                               TRUE ~ result),
            result = ifelse(is.infinite(result), NA, result),
            result = round(result, 1),
-           datasheet = "Combined Sheets", station = "Combined Stations",
+           datasheet = "ClearWell", station = "Combined Stations",
            parameter = "Turbidity Log Removal", unit = "ratio",
            parm_eval = "calculated",
            parm_tag = "physical") %>%
@@ -728,7 +728,7 @@ removal_coag_filt <- function(column_names, labdat, parameter){
                              percent_yield(pre = Raw, post = PreGAC),
                              raw_vs_pregac)),
            result = round(result, 3),
-           datasheet = "Combined Sheets", station = "Combined Stations",
+           datasheet = "ClearWell", station = "Combined Stations",
            parm_tag  = paste(ifelse(parameter == "Odour", "physical", "traceConstituents")),
            parameter = paste(parameter, "Removal - Coagulation & Filtration", sep = " "),
            unit      = "%",
@@ -775,7 +775,7 @@ removal_overall <- function(column_names, labdat, parameter){
     mutate(result = case_when(!is.na(result) ~ percent_yield(pre = Raw, post = Clearwell),
                               TRUE ~ result),
            result = round(result, 3),
-           datasheet = "Combined Sheets", station = "Combined Stations",
+           datasheet = "ClearWell", station = "Combined Stations",
            parm_tag  = paste(ifelse(parameter == "Odour", "physical", "traceConstituents")),
            parameter = paste(parameter, "Removal - Overall", sep = " "),
            unit      = "%",
@@ -823,7 +823,7 @@ removal_GACfilt <- function(column_names, labdat, parameter){
     mutate(result = case_when(!is.na(result) ~ percent_yield(pre = PreGAC, post = Clearwell),
                               TRUE ~ result),
            result = round(result, 3),
-           datasheet = "Combined Sheets", station = "Combined Stations",
+           datasheet = "ClearWell", station = "Combined Stations",
            unit      = "%",
            parm_eval = "calculated",
            parm_tag  = "traceConstituents",
