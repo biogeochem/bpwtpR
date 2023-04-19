@@ -148,14 +148,30 @@ scrape_clearwell <- function(weekly_data, clearwell_start, labdat_parameters) {
                  names_to = "date_ymd", values_to = "result") %>%
     rename(parameter = Parameters, unit = Units) %>%
     mutate(date_ymd = excel_numeric_to_date(as.numeric(date_ymd)),
+           # These matches match those within checks.R. If one changes, change the other too
            station = case_when(grepl("PreGAC", parameter, ignore.case = TRUE)
                                ~ "PreGAC",
-                               grepl("Channel 1", parameter, ignore.case = TRUE)
+                               grepl("MM ?F ?1", parameter, ignore.case = TRUE)
+                               ~ "MMF1",
+                               grepl("MM ?F ?12", parameter, ignore.case = TRUE)
+                               ~ "MMF12",
+                               grepl("MM ?F ?A", parameter, ignore.case = TRUE)
+                               ~ "MMFA",
+                               grepl("MM ?F ?L", parameter, ignore.case = TRUE)
+                               ~ "MMFL",
+                               grepl("Channel(?! ?[12])", parameter, ignore.case = TRUE,
+                                     perl = TRUE)
+                               ~ "Channel",
+                               grepl("Channel ?1", parameter, ignore.case = TRUE,
+                                     perl = TRUE)
                                ~ "Channel 1",
-                               grepl("Channel 2", parameter, ignore.case = TRUE)
+                               grepl("Channel ?2", parameter, ignore.case = TRUE)
                                ~ "Channel 2",
                                grepl("PreFM", parameter, ignore.case = TRUE)
                                ~ "PreFM",
+                               grepl("(?<!Pre)FM", parameter, ignore.case = TRUE,
+                                     perl = TRUE)
+                               ~ "FM",
                                grepl("Removal", parameter, ignore.case = TRUE)
                                ~ "Combined Stations",
                                TRUE ~ "Clearwell"),
