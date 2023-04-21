@@ -95,3 +95,27 @@ handle_missing_cols <- function(df, cols) {
   return(df)
 
 }
+
+
+#' Calculate vector of desired columns
+#'
+#' Create a numeric vector to store the names of the columns required for the
+#'  calculation of interest. Used to later reorganize data and to add columns
+#'  that are missing from a dataset but that are required for a calculation.
+#'
+#' @param parms string vector. The names of the columns specific to the
+#'  calculation of interest
+#'
+#' @return string vector. The names of all the columns of interest for a
+#'  calculation of interest (including datasheet, sheet year, station, date, and
+#'  whatever other columns are specific to the calculation of interest)
+det_cols <- function(parms) {
+
+  cols_ds_to_dt <- c("datasheet", "sheet_year", "station", "date_ymd")
+
+  cols <- rep.int(NA_real_, length(parms) + length(cols_ds_to_dt))
+  names(cols) <- c(cols_ds_to_dt, parms)
+
+  return(cols)
+
+}
