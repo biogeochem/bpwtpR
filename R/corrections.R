@@ -8,29 +8,16 @@
 #' @return dataframe containing the parsed lab data with the required biological
 #'  data values and units converted to per L as required
 convert_biocounts <- function(labdat){
-
-  parm_list <- c("Blue Green Algae (x10^-3)",
-                 "Crustaceans (x10^-3)",
-                 "Diatoms (x10^-3)",
-                 "Flagellates (x10^-3)",
-                 "Green Algae (x10^-3)",
-                 "Nematodes (x10^-3)",
-                 "Other (x10^-3)",
-                 "Rotifers (x10^-3)")
-
   df <- labdat %>%
-    mutate(result      = ifelse(parameter %in% parm_list,
+    mutate(result      = ifelse(parm_tag == "biological" & unit == "per mL",
                                 result * 1000, result),
-           result_flag = ifelse(parameter %in% parm_list,
+           result_flag = ifelse(parm_tag == "biological" & unit == "per mL",
                                 "converted", result_flag),
-           unit        = ifelse(parameter %in% parm_list,
+           unit        = ifelse(parm_tag == "biological" & unit == "per mL",
                                 "per litre", unit),
-           parameter   = ifelse(parameter %in% parm_list,
+           parameter   = ifelse(parm_tag == "biological" & unit == "per mL",
                                 gsub(" \\(x10\\^-3\\)", "", parameter),
                                 as.character(parameter)))
-
-  return(df)
-
 }
 
 #' Convert UV 254 values.
@@ -44,14 +31,12 @@ convert_biocounts <- function(labdat){
 convert_UV254 <- function(labdat) {
 
   df <- labdat %>%
-    mutate(result      = ifelse(parameter == "UV 254",
+    mutate(result      = ifelse(parameter == "UV 254" & unit == "Abs 10cm",
                                 result / 10, result),
-           result_flag = ifelse(parameter == "UV 254",
+           result_flag = ifelse(parameter == "UV 254" & unit == "Abs 10cm",
                                 "converted", result_flag),
-           unit        = ifelse(parameter == "UV 254",
+           unit        = ifelse(parameter == "UV 254" & unit == "Abs 10cm",
                                 "Abs 1cm", unit))
-
-  return(df)
 }
 
 #' Round values stored in result_org and result
