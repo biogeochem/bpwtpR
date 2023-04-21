@@ -19,7 +19,7 @@
 #' @importFrom lubridate as_datetime year month day yday week
 #' @importFrom dplyr case_when distinct filter first mutate rename row_number
 #'  select mutate_if left_join group_by summarise arrange bind_rows last nth
-#'  ungroup
+#'  ungroup full_join
 #' @importFrom stats complete.cases
 #' @importFrom janitor excel_numeric_to_date
 #' @importFrom tidyr pivot_longer replace_na pivot_wider
@@ -62,7 +62,8 @@ prepare_labdat <- function(path_to_labdat_file,
     check_scraped_data(labdat_parameters) %>%
     mutate(sheet_year = as.factor(file_sheet_year))
 
-  # One of the files has "<1 entered instead of <1 in one of the cells
+  # One of the files has "<1 entered instead of <1 in one of the cells, which
+  # messes with all future use of the data
   position_double_quotes <- which(grepl("\"<1", new_data_weekly$result))
   new_data_weekly$result[position_double_quotes] <-
     str_remove(new_data_weekly$result[position_double_quotes], pattern = "\"")
@@ -156,14 +157,6 @@ prepare_labdat <- function(path_to_labdat_file,
     convert_biocounts() %>%
     convert_UV254()
 
-  # DOC profile values and LSI RTW values are calculated_insheet but are NOT
-  # recalculated by script, and are left in the DB as-is
-  new_data_calc_insheet <- new_data %>%
-    filter(parm_eval == "calculated_insheet" & datasheet != "DOCProfile" &
-             parameter != "Langelier Index (RTW)") %>%
-    # To keep result_org to later combine with the results calculated by script
-    select(!c("result", "parm_eval"))
-
   print("Applying calculations...")
   # join() and summarise() functions print messages to the console that we don't
   # need to see
@@ -171,43 +164,14 @@ prepare_labdat <- function(path_to_labdat_file,
                                                           filter(datasheet != "DOCProfile"),
                                                         file_sheet_year))
 
-  # Combine values calculated in script with those calculated in sheet ---------
-
-  # Script calculated values can be compared with those recorded in labdat files
-  new_data_calcs_not_combo <- new_data_calcs %>%
-    filter(datasheet != "Combined Sheets") %T>%
-    {options(warn = -1)} %>%
-    left_join(new_data_calc_insheet,
-              by= c("datasheet", "sheet_year", "station", "date_ymd",
-                    "parameter", "unit", "parm_tag")) %T>%
-    {options(warn = 0)} %>%
-    select(datasheet, sheet_year, station, date_ymd,
-           parameter, unit,	parm_eval, parm_tag,
-           result, result_org, result_flag)
-
-  new_data_calcs_combo <- new_data_calcs %>%
-    filter(datasheet == "Combined Sheets") %T>%
-    {options(warn = -1)} %>%
-    # Different join() statement needed compared to above because datasheet and
-    # station values for these values differ from those listed in the yearly
-    # labdat files (here: "Combined", in sheet = "Raw" | "Clearwell")
-    left_join(select(new_data_calc_insheet, !c(datasheet, station)),
-              by = c("sheet_year", "date_ymd", "parameter", "unit", "parm_tag")) %T>%
-    {options(warn = 0)} %>%
-    select(datasheet, sheet_year, station, date_ymd,
-           parameter, unit,	parm_eval, parm_tag,
-           result, result_org, result_flag)
-
-  new_data_calcs <- rbind(new_data_calcs_not_combo, new_data_calcs_combo) %>%
-    mutate(result_flag = replace_na(result_flag, ""))
-
-  # Combining measured and calculated data -------------------------------------
   new_data <- new_data %>%
-    filter(!(parm_eval == "calculated_insheet" & datasheet != "DOCProfile" &
-               parameter != "Langelier Index (RTW)")) %>%
-    rbind(new_data_calcs)
-
-  new_data <- new_data %>%
+    full_join(new_data_calcs, by = c("datasheet", "sheet_year", "station",
+                                     "date_ymd", "parameter", "unit",
+                                     "parm_tag")) %>%
+    mutate(result    = case_when(!is.na(parm_eval.y) ~ result.y,
+                                 TRUE ~ result.x),
+           parm_eval = case_when(!is.na(parm_eval.y) ~ parm_eval.y,
+                                 TRUE ~ parm_eval.x)) %>%
     mutate(year  = year(date_ymd),
            month = month(date_ymd, label = TRUE),
            day   = day(date_ymd),
@@ -217,9 +181,6 @@ prepare_labdat <- function(path_to_labdat_file,
            parameter, unit,	parm_eval, parm_tag,
            result, result_org, result_flag) %>%
     mutate_if(is.character, as.factor)
-
-  # Putting new data in database -----------------------------------------------
-  print("Updating database file...")
 
   # Saving as csv converts NaN to NA. Setting NaN as -999999 for now in case if
   # Stephen (the DB expert) has some work around to this conversion for Access
