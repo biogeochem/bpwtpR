@@ -78,7 +78,7 @@ scrape_labdatxls <- function(weekly_data, labdat_parameters) {
 scrape_rawwater <- function(weekly_data, clearwell_start, labdat_parameters) {
 
   rw_parms_list <- labdat_parameters %>%
-    filter(datasheet == "RawWater") %>%
+    filter(datasheet == "Raw") %>%
     as.data.table() %>%
     # Ion values are not read in at this point. They are read in together with
     # CW ion values using scrape_ion_values() because they are found together at
@@ -92,7 +92,7 @@ scrape_rawwater <- function(weekly_data, clearwell_start, labdat_parameters) {
     as.data.frame()
 
   rawwater <- weekly_data %>%
-    filter(row_number() < clearwell_start - 1) %>%
+    filter(row_number() < clearwell_start) %>%
     filter(Parameters %in% rw_parms_list$parameter) %>%
     select(!starts_with("...")) %>%
     pivot_longer(cols = -c(Parameters, Units),
@@ -110,7 +110,7 @@ scrape_rawwater <- function(weekly_data, clearwell_start, labdat_parameters) {
                                          "Train B",
                                          TRUE ~ "Raw"))) %>%
     filter(!is.na(date_ymd)) %>%
-    add_column(datasheet = "RawWater") %>%
+    add_column(datasheet = "Raw") %>%
     select(datasheet, station, parameter, unit, date_ymd, result)
 
   return(rawwater)
@@ -129,7 +129,7 @@ scrape_clearwell <- function(weekly_data, clearwell_start, labdat_parameters) {
 
   # Aluminum, THMs, and ion values are read in separately
   cw_parms_list <- labdat_parameters %>%
-    filter(datasheet == "ClearWell") %>%
+    filter(datasheet == "Clearwell") %>%
     as.data.table() %>%
     # Ion values are not read in at this point. They are read in together with
     # CW ion values using scrape_ion_values() because they are found together at
@@ -177,7 +177,7 @@ scrape_clearwell <- function(weekly_data, clearwell_start, labdat_parameters) {
                                TRUE ~ "Clearwell"),
            station = as.factor(station)) %>%
     filter(!is.na(date_ymd)) %>%
-    add_column(datasheet = "ClearWell") %>%
+    add_column(datasheet = "Clearwell") %>%
     select(datasheet, station, parameter, unit, date_ymd, result)
 
   return(clearwell)
@@ -197,7 +197,7 @@ scrape_clearwell_thms <- function(weekly_data, clearwell_start, labdat_parameter
 
   # Expecting consistently 4 THM rows for each of Clearwell, Channel, PreGAC
   cw_thms_parms_list <- labdat_parameters %>%
-    filter(datasheet == "ClearWell") %>%
+    filter(datasheet == "Clearwell") %>%
     as.data.table() %>%
     filter_thms(.) %>%
     as.data.frame()
@@ -227,7 +227,7 @@ scrape_clearwell_thms <- function(weekly_data, clearwell_start, labdat_parameter
                  names_to = "date_ymd", values_to = "result") %>%
     mutate(date_ymd = excel_numeric_to_date(as.numeric(date_ymd))) %>%
     filter(!is.na(date_ymd)) %>%
-    add_column(datasheet = "ClearWell") %>%
+    add_column(datasheet = "Clearwell") %>%
     select(datasheet, station, parameter, unit, date_ymd, result)
 
   return(clearwell_THMs)
@@ -253,7 +253,7 @@ scrape_clearwell_al <- function(weekly_data, clearwell_start, labdat_parameters)
   # "Aluminum (particulate)"
   # Using labdat_parameters instead of hard-coding to account for small typos
   cw_al_parms_list <- labdat_parameters %>%
-    filter(datasheet == "ClearWell") %>%
+    filter(datasheet == "Clearwell") %>%
     as.data.table() %>%
     filter_al(.) %>%
     as.data.frame()
@@ -295,7 +295,7 @@ scrape_clearwell_al <- function(weekly_data, clearwell_start, labdat_parameters)
            station = ifelse(station == "MMF12" &
                               year(date_ymd) >= 2004,
                             "MMFL", station)) %>%
-    add_column(datasheet = "ClearWell") %>%
+    add_column(datasheet = "Clearwell") %>%
     select(datasheet, station, parameter, unit, date_ymd, result)
 
   return(clearwell_Al)
@@ -345,10 +345,10 @@ scrape_ion_values <- function(weekly_data, labdat_parameters) {
   ions <- weekly_data %>%
     mutate(datasheet = case_when(row_number() > silica_included_start_rw &
                                    row_number() <= silica_included_start_rw + 3
-                                 ~ "RawWater",
+                                 ~ "Raw",
                                  row_number() > silica_included_start_cw &
                                    row_number() <= silica_included_start_cw + 3
-                                 ~ "ClearWell"),
+                                 ~ "Clearwell"),
            station   = case_when(row_number() > silica_included_start_rw &
                                    row_number() <= silica_included_start_rw + 3
                                  ~ "Raw",

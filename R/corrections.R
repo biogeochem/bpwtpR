@@ -13,11 +13,11 @@ convert_biocounts <- function(labdat){
                                 result * 1000, result),
            result_flag = ifelse(parm_tag == "biological" & unit == "per mL",
                                 "converted", result_flag),
-           unit        = ifelse(parm_tag == "biological" & unit == "per mL",
-                                "per litre", unit),
            parameter   = ifelse(parm_tag == "biological" & unit == "per mL",
-                                gsub(" \\(x10\\^-3\\)", "", parameter),
-                                as.character(parameter)))
+                                gsub(" \\(x10\\^-?3\\)", "", parameter),
+                                as.character(parameter)),
+           unit        = ifelse(parm_tag == "biological" & unit == "per mL",
+                                "per litre", unit))
 }
 
 #' Convert UV 254 values.
@@ -81,7 +81,7 @@ round_values <- function(labdat) {
                                  # Removal values are stored as digits but
                                  # displayed as percent (0.75 vs 75%)
                                  grepl("Removal", parameter, ignore.case = TRUE)
-                                 ~ as.character(round(as.numeric(result_org), 3)),
+                                 ~ as.character(round(as.numeric(result_org), 2)),
                                  grepl("SUVA", parameter, ignore.case = TRUE)
                                  ~ as.character(round(as.numeric(result_org), 4)),
                                  parameter == "Total THMs" |
@@ -219,7 +219,7 @@ update_parameters <- function(labdat, file_sheet_year,
            parm_eval, parm_tag, result) %>%
     mutate(datasheet = ifelse(parameter == "Free Chlorine" |
                                 parameter == "Combined Chlorine",
-                              "ClearWell", datasheet),
+                              "Clearwell", datasheet),
            station   = ifelse(parameter == "Free Chlorine" |
                                 parameter == "Combined Chlorine",
                               "Clearwell", station))

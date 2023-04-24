@@ -33,7 +33,7 @@ check_parameters_setup <- function(labdat_parameters) {
   # matching can cause other issues. User will be required to fix any mistakes
   # that a simple gsub cannot fix. If these are updated ensure that their
   # assignment in scrape.R is updated as well.
-  correct_inputs <- list(datasheet = c("ClearWell", "RawWater", "DOCProfile"),
+  correct_inputs <- list(datasheet = c("Clearwell", "Raw", "DOCProfile"),
                          station   = c("Clearwell", "Raw", "PreGAC/Clearwell",
                                        "PreGAC", "PreFM", "FM",
                                        "Train A", "Train B",
@@ -88,7 +88,7 @@ check_parameters_setup <- function(labdat_parameters) {
 
   # Checking for changes in Raw Water THM measurement --------------------------
   rw_thms <- labdat_parameters %>%
-    filter(datasheet == "RawWater") %>%
+    filter(datasheet == "Raw") %>%
     as.data.table() %>%
     filter_thms(.) %>%
     as.data.frame() %>%
@@ -117,7 +117,7 @@ check_parameters_setup <- function(labdat_parameters) {
     as.data.table() %>%
     fsetdiff(filter_thms(.)) %>%
     as.data.frame() %>%
-    filter(datasheet == "RawWater",
+    filter(datasheet == "Raw",
            station != "Raw")
 
   rw_issues <- rw %>%
@@ -152,7 +152,7 @@ check_parameters_setup <- function(labdat_parameters) {
     fsetdiff(filter_thms(.)) %>%
     fsetdiff(filter_al(.)) %>%
     as.data.frame() %>%
-    filter(datasheet == "ClearWell",
+    filter(datasheet == "Clearwell",
            station != "Clearwell")
 
   # These matches come from those within scrape.R. If one changes, change the other too
@@ -280,7 +280,7 @@ check_parameters_setup <- function(labdat_parameters) {
     try_write <- try(write_xlsx(labdat_parameters, path_to_parameters),
                      silent = TRUE)
 
-    if (class(try_write) == "try-error") {
+    if (inherits(try_write, c("try-error"))) {
       stop(paste("Was unable to perform the required rewrites to parameters.xlsx.",
                  "If the document is open, close it and try again. Otherwise,",
                  "ensure that your computer permissions allow this tool to",

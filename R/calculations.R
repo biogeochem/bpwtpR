@@ -59,6 +59,8 @@ apply_calculations <- function(labdat, file_sheet_year){
 #' Calculate aluminum particulate, equal to total aluminum - dissolved aluminum
 #'
 #' @inheritParams update_parameters
+#' @param column_names string vector defined in apply_calculations. The desired final
+#'  columns for each calculated dataframe
 #'
 #' @return numeric vector. The calculated values
 al_particulate <- function(column_names, labdat) {
@@ -69,7 +71,7 @@ al_particulate <- function(column_names, labdat) {
 
   df <- labdat %>%
     filter(parameter %in% parms,
-           unit == "µg/L",
+           unit == "\u00b5g/L",
            station %in% c("Raw", "Clearwell")) %>%
     pivot_wider(names_from = parameter, values_from = result,
                 id_cols = datasheet:date_ymd) %>%
@@ -91,7 +93,7 @@ al_particulate <- function(column_names, labdat) {
 #'
 #' Calculate SUVA, equal to (UV254)*100/DOC
 #'
-#' @inheritParams update_parameters
+#' @inheritParams al_particulate
 #'
 #' @return numeric vector. The calculated values
 suva <- function(column_names, labdat) {
@@ -125,7 +127,7 @@ suva <- function(column_names, labdat) {
 #'
 #' Calculate PACl, equal to (PACl Train A + PACl Train B)/2
 #'
-#' @inheritParams update_parameters
+#' @inheritParams al_particulate
 #'
 #' @return numeric vector. The calculated values
 PACl <- function(column_names, labdat) {
@@ -141,7 +143,7 @@ PACl <- function(column_names, labdat) {
 
   df <- labdat %>%
     filter(parameter %in% parms, station %in% station_list,
-           datasheet == "RawWater",
+           datasheet == "Raw",
            unit == "mg/L") %>%
     pivot_wider(names_from = c(parameter, station), values_from = result,
                 id_cols = c("sheet_year","date_ymd")) %>%
@@ -151,7 +153,7 @@ PACl <- function(column_names, labdat) {
     summarise(result = mean(c(`PACl_Train A`, `PACl_Train B`), na.rm = TRUE)) %>%
     mutate(result = ifelse(is.nan(result), NA, result),
            result = round(result, 2),
-           datasheet = "RawWater",
+           datasheet = "Raw",
            station = "Raw",
            parameter = "PACl", unit = "mg/L",
            parm_tag = "operations") %>%
@@ -163,7 +165,7 @@ PACl <- function(column_names, labdat) {
 #'
 #' Calculate PACl as dry alum equivalent, equal to PACl\*2.07
 #'
-#' @inheritParams calculate_value
+#' @inheritParams al_particulate
 #' @param PACl_values numeric vector. The values calculated by `PACl()`
 #'
 #' @return dataframe containing all required columns, including the calculated
@@ -187,7 +189,7 @@ PACl_DAE <- function(column_names, PACl_values) {
 #' * (PACl Train X\*2.07)+Alum)/2, if only one train value exists
 #' * Alum, if neither train value exists
 #'
-#' @inheritParams calculate_value
+#' @inheritParams al_particulate
 #' @param PACl_DAE_values numeric vector. The values calculated by
 #'  `PACl_DAE()`
 #'
@@ -224,7 +226,7 @@ overall_coag_dose <- function(column_names, labdat, PACl_DAE_values) {
                                  TRUE
                                    ~ result)) %>%
     mutate(result = round(result, 2),
-           datasheet = "RawWater", station = "Raw",
+           datasheet = "Raw", station = "Raw",
            parameter = "Overall Coagulant Dose", unit = "mg/L DAE",
            parm_tag = "operations") %>%
     select(all_of(column_names))
@@ -236,7 +238,7 @@ overall_coag_dose <- function(column_names, labdat, PACl_DAE_values) {
 #' Calculate the total chlorine dose, equal to the sum of chlorine pre,
 #'  intermed, and post
 #'
-#' @inheritParams calculate_value
+#' @inheritParams al_particulate
 #'
 #' @return dataframe containing all required columns, including the calculated
 #'  result. Note that the results of `determine_NA_NC()` are employed, and that
@@ -272,7 +274,7 @@ tot_chlorine_dose <- function(column_names, labdat) {
 #'  Potassium\*0.0256 + Silica\*0.02629
 #' * ion percent difference = (cation sum - anion sum)/(cation sum + anion sum)\*100
 #'
-#' @inheritParams calculate_value
+#' @inheritParams al_particulate
 #'
 #' @return dataframe containing all required columns, including the calculated
 #'  result. Note that the results of `determine_NA_NC()` are employed, and that
@@ -324,7 +326,7 @@ ion_balance <- function(column_names, labdat){
 #'
 #' Calculate alum to DOC ratio, equal to Alum/DOC
 #'
-#' @inheritParams update_parameters
+#' @inheritParams al_particulate
 #'
 #' @return numeric vector. The calculated values
 alum_DOC_ratio <- function(column_names, labdat) {
@@ -358,7 +360,7 @@ alum_DOC_ratio <- function(column_names, labdat) {
 #' Calculate the total THMs, equal to the sum of bromodichloromethane,
 #' bromoform, chlorodibromomethane, chloroform
 #'
-#' @inheritParams calculate_value
+#' @inheritParams al_particulate
 #'
 #' @return dataframe containing all required columns, including the calculated
 #'  result. Note that the results of `determine_NA_NC()` are employed, and that
@@ -370,7 +372,7 @@ total_THMs <- function(column_names, labdat) {
              "Chlorodibromomethane", "Chloroform")
 
   df <- labdat %>%
-    filter(parameter %in% parms, unit == "µg/L") %>%
+    filter(parameter %in% parms, unit == "\u00b5g/L") %>%
     group_by(datasheet, sheet_year, station, date_ymd) %>%
     summarise(result = ifelse(sum(result, na.rm = TRUE) > 0,
                               sum(result, na.rm = TRUE), NA)) %>%
@@ -385,7 +387,7 @@ total_THMs <- function(column_names, labdat) {
 #
 #' Calculate the precent dissolved oxygen, equal to DO/oxygen solubility*100
 #'
-#' @inheritParams calculate_value
+#' @inheritParams al_particulate
 #'
 #' @return dataframe containing all required columns, including the calculated
 #'  result. Note that the results of `determine_NA_NC()` are employed, and that
@@ -417,14 +419,14 @@ DO_percent <- function(column_names, labdat) {
 
   df <- labdat %>%
     filter(parameter == "Temperature" | parameter == "Diss. Oxygen" |
-             parameter == "Bench Diss. Oxygen", unit == "°C" | unit == "mg/L") %>%
+             parameter == "Bench Diss. Oxygen", unit == "\u00b0C" | unit == "mg/L") %>%
     pivot_wider(id_cols = "datasheet":"date_ymd",
                 names_from = "parameter", values_from = "result")  %>%
     handle_missing_cols(cols) %>%
     left_join(O2Table, by = c("Temperature" = "temperature_C")) %>%
     # These two parameters are equivalent but are given different names
-    mutate(DO = case_when(datasheet == "RawWater" ~ `Bench Diss. Oxygen`,
-                          datasheet == "ClearWell" ~ `Diss. Oxygen`)) %>%
+    mutate(DO = case_when(datasheet == "Raw" ~ `Bench Diss. Oxygen`,
+                          datasheet == "Clearwell" ~ `Diss. Oxygen`)) %>%
     determine_NA_NC(8, 9) %>%
     mutate(result = case_when(!is.na(.data$result) ~ DO / oxy.sol_mg.L * 100,
                               TRUE ~ .data$result),
@@ -440,7 +442,7 @@ DO_percent <- function(column_names, labdat) {
 #' Calculate the dissolved solids, equal to the sum of bicarbonate, carbonate,
 #'  calcium, magnesium, sodium, potassium, sulphate, chloride, silica
 #'
-#' @inheritParams calculate_value
+#' @inheritParams al_particulate
 #'
 #' @return dataframe containing all required columns, including the calculated
 #'  result. Note that the results of `determine_NA_NC()` are employed, and that
@@ -480,7 +482,7 @@ dissolved_solids <- function(column_names, labdat) {
 #
 #' Calculate the Langelier Saturation Indices 1 and 2
 #'
-#' @inheritParams calculate_value
+#' @inheritParams al_particulate
 #'
 #' @return dataframe containing all required columns, including the calculated
 #'  result. Note that the results of `determine_NA_NC()` are employed, and that
@@ -495,7 +497,7 @@ langelier_SatIndex <- function(column_names, labdat){
 
   df <- labdat %>%
     filter(((parameter == "TDS" & unit == "mg/L") |
-             (parameter == "Temperature" & unit == "°C") |
+             (parameter == "Temperature" & unit == "\u00b0C") |
              (parameter == "pH" & unit == "pH units") |
              (parameter == "Alkalinity (total)" & unit == "mg/L CaCO3") |
              (parameter == "Calcium" & unit == "mg/L")),
@@ -539,7 +541,7 @@ langelier_SatIndex <- function(column_names, labdat){
 #' Calculate the turbidity log removal, equal to
 #'  log10(raw turbidity/Clearwell turbidity)
 #'
-#' @inheritParams calculate_value
+#' @inheritParams al_particulate
 #'
 #' @return dataframe containing all required columns, including the calculated
 #'  result. Note that the results of `determine_NA_NC()` are employed, and that
@@ -554,8 +556,8 @@ turbidity_logRemoval <- function(column_names, labdat) {
   parms <- c("Turbidity")
 
   df <- labdat %>%
-    filter(parameter %in% parms, unit == "NTU") %>%
-    mutate(parameter = ifelse(datasheet == "RawWater",
+    filter(parameter %in% parms, unit == "NTU", station %in% c("Raw", "Clearwell")) %>%
+    mutate(parameter = ifelse(datasheet == "Raw",
                               "RW_Turbidity",
                               "CW_Turbidity")) %>%
     pivot_wider(names_from = parameter, values_from = result,
@@ -567,7 +569,7 @@ turbidity_logRemoval <- function(column_names, labdat) {
                               TRUE ~ result),
            result = ifelse(is.infinite(result), NA, result),
            result = round(result, 2),
-           datasheet = "ClearWell", station = "Combined Stations",
+           datasheet = "Clearwell", station = "Combined Stations",
            parameter = "Turbidity Log Removal", unit = "ratio",
            parm_tag = "physical") %>%
     select(all_of(column_names))
@@ -581,7 +583,7 @@ turbidity_logRemoval <- function(column_names, labdat) {
 #' Calculate the total blue plus blue green algae, equal blue green algae +
 #'  green algae
 #'
-#' @inheritParams update_parameters
+#' @inheritParams al_particulate
 #'
 #' @return numeric vector. The calculated values
 tot_B_BG_algae <- function(column_names, labdat) {
@@ -618,7 +620,7 @@ tot_B_BG_algae <- function(column_names, labdat) {
 #'  * percent yield between the raw and PreGAC values if Clearwell values do not
 #'    exist
 #'
-#' @inheritParams calculate_value
+#' @inheritParams al_particulate
 #' @param parameter string. Parameter for which to calculate removal by
 #'  coagulation, filtration. Likely one of: DOC, TOC, Odour
 #' @param units string. The possible unit(s) for the parameter of interest
@@ -651,8 +653,8 @@ removal_coag_filt <- function(column_names, labdat, parameter, units){
                       ifelse(!is.na(raw_vs_pregac),
                              percent_yield(pre = Raw, post = PreGAC),
                              raw_vs_pregac)),
-           result = round(result, 1),
-           datasheet = "ClearWell", station = "Combined Stations",
+           result = round(result, 2),
+           datasheet = "Clearwell", station = "Combined Stations",
            parm_tag  = paste(ifelse(parameter == "Odour", "physical", "traceConstituents")),
            parameter = paste(parameter, "Removal - Coagulation & Filtration", sep = " "),
            unit      = "%") %>%
@@ -665,7 +667,7 @@ removal_coag_filt <- function(column_names, labdat, parameter, units){
 #' Calculate overall filtration. Equal to percent yield between the raw and
 #'  Clearwell values
 #'
-#' @inheritParams calculate_value
+#' @inheritParams al_particulate
 #' @inheritParams removal_coag_filt
 #'
 #' @return dataframe containing all required columns, including the calculated
@@ -694,8 +696,8 @@ removal_overall <- function(column_names, labdat, parameter, units){
     determine_NA_NC(3, 4) %>%
     mutate(result = case_when(!is.na(result) ~ percent_yield(pre = Raw, post = Clearwell),
                               TRUE ~ result),
-           result = round(result, 1),
-           datasheet = "ClearWell", station = "Combined Stations",
+           result = round(result, 2),
+           datasheet = "Clearwell", station = "Combined Stations",
            parm_tag  = paste(ifelse(parameter == "Odour", "physical", "traceConstituents")),
            parameter = paste(parameter, "Removal - Overall", sep = " "),
            unit      = "%") %>%
@@ -708,7 +710,7 @@ removal_overall <- function(column_names, labdat, parameter, units){
 #' Calculate removal by GAC filtration. Equal to percent yield between the
 #'  PreGAC and Clearwell values
 #'
-#' @inheritParams calculate_value
+#' @inheritParams al_particulate
 #' @inheritParams removal_coag_filt
 #'
 #' @return dataframe containing all required columns, including the calculated
@@ -738,8 +740,8 @@ removal_GACfilt <- function(column_names, labdat, parameter, units){
     determine_NA_NC(3, 4) %>%
     mutate(result = case_when(!is.na(result) ~ percent_yield(pre = PreGAC, post = Clearwell),
                               TRUE ~ result),
-           result = round(result, 1),
-           datasheet = "ClearWell", station = "Combined Stations",
+           result = round(result, 2),
+           datasheet = "Clearwell", station = "Combined Stations",
            unit      = "%",
            parm_tag  = "traceConstituents",
            parameter = paste(parameter, "Removal - GAC Filtration", sep = " ")) %>%
