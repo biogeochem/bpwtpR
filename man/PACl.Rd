@@ -4,9 +4,12 @@
 \alias{PACl}
 \title{Calculate PACl}
 \usage{
-PACl(labdat)
+PACl(column_names, labdat)
 }
 \arguments{
+\item{column_names}{string vector defined in apply_calculations. The desired final
+columns for each calculated dataframe}
+
 \item{labdat}{dataframe containing the parsed lab data}
 }
 \value{

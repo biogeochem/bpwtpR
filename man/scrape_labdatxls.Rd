@@ -4,14 +4,12 @@
 \alias{scrape_labdatxls}
 \title{Scrape data from BPWTP routine lab data}
 \usage{
-scrape_labdatxls(path_to_labdat_file, path_to_parameters)
+scrape_labdatxls(weekly_data, labdat_parameters)
 }
 \arguments{
-\item{path_to_labdat_file}{string. Path to the lab data file to be inserted
-into the database file}
+\item{weekly_data}{dataframe. Raw weekly data outputted from read_weekly()}
 
-\item{path_to_parameters}{string. Path to the .xlsx file that contains the
-desired parameters and associated info (station, units, corrected units...)}
+\item{labdat_parameters}{dataframe. Output from check_parameters_content}
 }
 \value{
 data frame of all the data contained in the Weekly lab data file

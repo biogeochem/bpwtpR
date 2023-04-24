@@ -4,15 +4,18 @@
 \alias{removal_overall}
 \title{Calculate overall removal}
 \usage{
-removal_overall(column_names, labdat, parameter)
+removal_overall(column_names, labdat, parameter, units)
 }
 \arguments{
-\item{column_names}{constant string vector. The desired column names in order}
+\item{column_names}{string vector defined in apply_calculations. The desired final
+columns for each calculated dataframe}
 
 \item{labdat}{dataframe containing the parsed lab data}
 
 \item{parameter}{string. Parameter for which to calculate removal by
 coagulation, filtration. Likely one of: DOC, TOC, Odour}
+
+\item{units}{string. The possible unit(s) for the parameter of interest}
 }
 \value{
 dataframe containing all required columns, including the calculated

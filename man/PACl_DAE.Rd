@@ -7,7 +7,8 @@
 PACl_DAE(column_names, PACl_values)
 }
 \arguments{
-\item{column_names}{constant string vector. The desired column names in order}
+\item{column_names}{string vector defined in apply_calculations. The desired final
+columns for each calculated dataframe}
 
 \item{PACl_values}{numeric vector. The values calculated by \code{PACl()}}
 }

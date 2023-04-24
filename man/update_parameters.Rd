@@ -4,18 +4,17 @@
 \alias{update_parameters}
 \title{Update parameter names and units}
 \usage{
-update_parameters(labdat, file_sheet_year, path_to_parameters)
+update_parameters(labdat, file_sheet_year, labdat_parameters)
 }
 \arguments{
 \item{labdat}{dataframe containing the parsed lab data}
 
 \item{file_sheet_year}{numeric value indicating the sheet year}
 
-\item{path_to_parameters}{string. Path to the .xlsx file that contains the
-desired parameters and associated info (station, units, corrected units...)}
+\item{labdat_parameters}{dataframe. Output from check_parameters_content}
 }
 \value{
-data frame with updated parameter name, unit, and parm_unit
+data frame with updated parameter name, unit
 }
 \description{
 Update parameter names and units as indicated in \code{parameters.xlsx}. There

@@ -5,8 +5,7 @@ geometry: left = 1.5cm, right = 1.5cm, top = 2cm, bottom = 2cm
 output:
   html_document:
     df_print: paged
-  pdf_document:
-    latex_engine: xelatex
+  word_document
 mainfont: Times New Roman
 header-includes: "\\usepackage{float}\n\\usepackage{caption}\n\\usepackage{fancyhdr}\n\\pagestyle{fancy}\n\\fancyhead[L]{\\LARGE{BUFFALO
   POUND WATER TREATMENT PLANT}} \n\\setlength\\headheight{15pt}\n\\fancyhead[L]{\\large{Monthly

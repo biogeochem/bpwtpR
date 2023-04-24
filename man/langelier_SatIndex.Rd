@@ -8,7 +8,8 @@ Calculate the Langelier Saturation Indices 1 and 2}
 langelier_SatIndex(column_names, labdat)
 }
 \arguments{
-\item{column_names}{constant string vector. The desired column names in order}
+\item{column_names}{string vector defined in apply_calculations. The desired final
+columns for each calculated dataframe}
 
 \item{labdat}{dataframe containing the parsed lab data}
 }

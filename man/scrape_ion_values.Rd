@@ -4,12 +4,12 @@
 \alias{scrape_ion_values}
 \title{Scrape ion data}
 \usage{
-scrape_ion_values(spreadsheet, labdat_parameters)
+scrape_ion_values(weekly_data, labdat_parameters)
 }
 \arguments{
-\item{spreadsheet}{dataframe. All data in the Weekly sheet of the lab data file}
+\item{weekly_data}{dataframe. All data in the Weekly sheet of the lab data file}
 
-\item{labdat_parameters}{dataframe. Slightly processed parameters.xlsx data}
+\item{labdat_parameters}{dataframe. Output from check_parameters_content}
 }
 \value{
 data frame of the ion data

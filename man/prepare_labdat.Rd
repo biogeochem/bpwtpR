@@ -7,14 +7,16 @@
 prepare_labdat(path_to_labdat_file, path_to_db_file, path_to_parameters)
 }
 \arguments{
-\item{path_to_labdat_file}{string. Path to the lab data file to be inserted
-into the database file}
+\item{path_to_labdat_file}{string. Full path (from root directory) to the lab
+data file to be inserted into the database file}
 
-\item{path_to_db_file}{string. Path to the .csv database file if it exists,
-and desired path to a .csv database file if it does not exist}
+\item{path_to_db_file}{string. Full path (from root directory) to the .csv
+database file if it exists, and desired path to a .csv database file if it
+does not exist}
 
-\item{path_to_parameters}{string. Path to the .xlsx file that contains the
-desired parameters and associated info (station, units, corrected units...)}
+\item{path_to_parameters}{string. Full path (from root directory) to the
+.xlsx file that contains the desired parameters and associated info
+(station, units, corrected units...)}
 }
 \value{
 dataframe containing the processed lab data that has been inserted

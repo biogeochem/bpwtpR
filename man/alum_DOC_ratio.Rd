@@ -4,9 +4,12 @@
 \alias{alum_DOC_ratio}
 \title{Calculate alum to DOC ratio}
 \usage{
-alum_DOC_ratio(labdat)
+alum_DOC_ratio(column_names, labdat)
 }
 \arguments{
+\item{column_names}{string vector defined in apply_calculations. The desired final
+columns for each calculated dataframe}
+
 \item{labdat}{dataframe containing the parsed lab data}
 }
 \value{

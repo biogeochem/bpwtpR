@@ -4,14 +4,15 @@
 \alias{overall_coag_dose}
 \title{Calculate the overall coagulant dose}
 \usage{
-overall_coag_dose(column_names, labdat, dry_alum_equiv_values)
+overall_coag_dose(column_names, labdat, PACl_DAE_values)
 }
 \arguments{
-\item{column_names}{constant string vector. The desired column names in order}
+\item{column_names}{string vector defined in apply_calculations. The desired final
+columns for each calculated dataframe}
 
 \item{labdat}{dataframe containing the parsed lab data}
 
-\item{dry_alum_equiv_values}{numeric vector. The values calculated by
+\item{PACl_DAE_values}{numeric vector. The values calculated by
 \code{PACl_DAE()}}
 }
 \value{

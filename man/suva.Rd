@@ -4,9 +4,12 @@
 \alias{suva}
 \title{Calculate SUVA}
 \usage{
-suva(labdat)
+suva(column_names, labdat)
 }
 \arguments{
+\item{column_names}{string vector defined in apply_calculations. The desired final
+columns for each calculated dataframe}
+
 \item{labdat}{dataframe containing the parsed lab data}
 }
 \value{

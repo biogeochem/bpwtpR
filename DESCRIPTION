@@ -52,7 +52,9 @@ Imports:
     tibble,
     tidyr (>= 1.0.0),
     tidyselect,
-    utils
+    utils,
+    writexl,
+    zoo
 RoxygenNote: 7.2.3
 Suggests: 
     knitr,

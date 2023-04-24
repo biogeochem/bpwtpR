@@ -4,16 +4,16 @@
 \alias{scrape_rawwater}
 \title{Scrape raw water data}
 \usage{
-scrape_rawwater(spreadsheet, clearwell_start, labdat_parameters)
+scrape_rawwater(weekly_data, clearwell_start, labdat_parameters)
 }
 \arguments{
-\item{spreadsheet}{dataframe. All data in the Weekly sheet of the lab data file}
+\item{weekly_data}{dataframe. All data in the Weekly sheet of the lab data file}
 
 \item{clearwell_start}{numeric value. The start of the Clearwell data as
 indicated by the phrase "CLEAR WELL" in the Parameters column of the Weekly
 data}
 
-\item{labdat_parameters}{dataframe. Slightly processed parameters.xlsx data}
+\item{labdat_parameters}{dataframe. Output from check_parameters_content}
 }
 \value{
 data frame of the raw water data

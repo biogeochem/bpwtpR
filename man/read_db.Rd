@@ -7,9 +7,9 @@
 read_db(path_to_db_file)
 }
 \arguments{
-\item{path_to_db_file}{character string. Path to the file that contains the
-database file, or if the file does not yet exist, the desired path to the
-file that will contain the database file}
+\item{path_to_db_file}{string. Full path (from root directory) to the .csv
+database file if it exists, and desired path to a .csv database file if it
+does not exist}
 }
 \value{
 dataframe containing the database, if it exists, or NULL if it does not

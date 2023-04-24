@@ -4,9 +4,12 @@
 \alias{al_particulate}
 \title{Calculate aluminum particulate}
 \usage{
-al_particulate(labdat)
+al_particulate(column_names, labdat)
 }
 \arguments{
+\item{column_names}{string vector defined in apply_calculations. The desired final
+columns for each calculated dataframe}
+
 \item{labdat}{dataframe containing the parsed lab data}
 }
 \value{

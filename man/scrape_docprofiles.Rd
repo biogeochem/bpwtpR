@@ -4,11 +4,12 @@
 \alias{scrape_docprofiles}
 \title{Scrape DOC profiles}
 \usage{
-scrape_docprofiles(path_to_labdat_file)
+scrape_docprofiles(doc_data, labdat_parameters)
 }
 \arguments{
-\item{path_to_labdat_file}{string. Path to the lab data file to be inserted
-into the database file}
+\item{doc_data}{dataframe. Output from read_doc()}
+
+\item{labdat_parameters}{dataframe. Output from check_parameters_content}
 }
 \value{
 data frame of the DOC profile data
