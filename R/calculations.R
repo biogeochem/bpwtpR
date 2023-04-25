@@ -17,10 +17,10 @@ apply_calculations <- function(labdat, file_sheet_year){
                                  suva(column_names, labdat),
                                  PACl_values <- PACl(column_names, labdat),
                                  PACl_DAE_values <- PACl_DAE(column_names, PACl_values),
-                                 overall_coag_dose(column_names, labdat, PACl_DAE_values),
+                                 overall_coag <- overall_coag_dose(column_names, labdat, PACl_DAE_values),
                                  tot_chlorine_dose(column_names, labdat),
                                  ion_balance(column_names, labdat),
-                                 alum_DOC_ratio(column_names, labdat),
+                                 alum_DOC_ratio(column_names, labdat, overall_coag),
                                  total_THMs(column_names, labdat),
                                  DO_percent(column_names, labdat),
                                  # From 1980-2017, DS values are calculated
@@ -327,30 +327,60 @@ ion_balance <- function(column_names, labdat){
 #' Calculate alum to DOC ratio, equal to Alum/DOC
 #'
 #' @inheritParams al_particulate
+#' @param overall_coag dataframe. Output from overall_coag_dose()
 #'
 #' @return numeric vector. The calculated values
-alum_DOC_ratio <- function(column_names, labdat) {
+alum_DOC_ratio <- function(column_names, labdat, overall_coag) {
 
-  parms <- c("Alum", "DOC")
+  # If overall_coag dose exists, use that instead of Alum
+  if (nrow(overall_coag) != 0) {
+    parms <- c("DOC")
 
-  cols <- det_cols(parms)
+    # Columns required for proper calculation of df
+    cols <- c(sheet_year = NA_real_, date_ymd = NA_real_,
+              DOC  = NA_real_, overall_coag  = NA_real_)
 
-  df <- labdat %>%
-    filter(((parameter %in% parms[1] & unit == "mg/L") |
-            (parameter %in% parms[2] & unit == "mg/L C")),
-           station == "Raw") %>%
-    pivot_wider(names_from = parameter, values_from = result,
-                id_cols = datasheet:date_ymd) %>%
-    # In case if any of the required parameters are missing
-    handle_missing_cols(cols) %>%
-    determine_NA_NC(5, 6) %>%
-    mutate(result = case_when(!is.na(result) ~ Alum/DOC,
-                              TRUE ~ result),
-           result = round(result, 2),
-           parameter = "Alum to DOC ratio", unit = "ratio",
-           parm_tag  = "operations") %>%
-    select(all_of(column_names))
+    df <- labdat %>%
+      filter(((parameter %in% parms[1] & unit == "mg/L C")),
+             station == "Raw") %>%
+      pivot_wider(names_from = parameter, values_from = result,
+                  id_cols = datasheet:date_ymd) %>%
+      left_join(overall_coag, by = c("datasheet", "sheet_year", "station", "date_ymd")) %>%
+      mutate(overall_coag = result) %>%
+      # In case if any of the required parameters are missing
+      handle_missing_cols(cols) %>%
+      determine_NA_NC(3, 4) %>%
+      mutate(result = case_when(!is.na(result) ~ overall_coag/DOC,
+                                TRUE ~ result),
+             result = round(result, 2),
+             datasheet = "Raw", station = "Raw",
+             parameter = "Alum to DOC ratio", unit = "ratio",
+             parm_tag  = "operations") %>%
+      select(all_of(column_names))
 
+  } else {
+    parms <- c("Alum", "DOC")
+
+    cols <- det_cols(parms)
+
+    df <- labdat %>%
+      filter(((parameter %in% parms[1] & unit == "mg/L") |
+              (parameter %in% parms[2] & unit == "mg/L C")),
+             station == "Raw") %>%
+      pivot_wider(names_from = parameter, values_from = result,
+                  id_cols = datasheet:date_ymd) %>%
+      # In case if any of the required parameters are missing
+      handle_missing_cols(cols) %>%
+      determine_NA_NC(5, 6) %>%
+      mutate(result = case_when(!is.na(result) ~ Alum/DOC,
+                                TRUE ~ result),
+             result = round(result, 2),
+             parameter = "Alum to DOC ratio", unit = "ratio",
+             parm_tag  = "operations") %>%
+      select(all_of(column_names))
+  }
+
+  return(df)
 }
 
 # THM ---------------------
