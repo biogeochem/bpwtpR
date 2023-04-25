@@ -151,6 +151,12 @@ scrape_clearwell <- function(weekly_data, clearwell_start, labdat_parameters) {
            # These matches match those within checks.R. If one changes, change the other too
            station = case_when(grepl("PreGAC", parameter, ignore.case = TRUE)
                                ~ "PreGAC",
+                               grepl("PreBAC", parameter, ignore.case = TRUE)
+                               ~ "PreBAC",
+                               grepl("BAC ?E", parameter, ignore.case = TRUE)
+                               ~ "BAC E",
+                               grepl("BAC ?M", parameter, ignore.case = TRUE)
+                               ~ "BAC M",
                                grepl("MM ?F ?1", parameter, ignore.case = TRUE)
                                ~ "MMF1",
                                grepl("MM ?F ?12", parameter, ignore.case = TRUE)

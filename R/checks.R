@@ -38,6 +38,7 @@ check_parameters_setup <- function(labdat_parameters) {
                                        "PreGAC", "PreFM", "FM",
                                        "Train A", "Train B",
                                        "MMF1", "MMF12", "MMFA", "MMFL",
+                                       "BAC E", "BAC M", "PreBAC",
                                        "Channel", "Channel 1", "Channel 2",
                                        "Combined Stations"),
                          parm_eval = c("measured", "calculated_insheet"),
