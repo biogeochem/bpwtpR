@@ -6,6 +6,8 @@
 #' @inheritParams prepare_labdat
 #'
 #' @return dataframe containing the database, if it exists, or NULL if it does not
+#'
+#' @export
 read_db <- function(path_to_db_file) {
 
   options(scipen = 999)

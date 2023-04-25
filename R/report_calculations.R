@@ -23,6 +23,8 @@ summarize_monthly <- function(labdat){
 #'
 #' @return dataframe. THM data summarized
 #'
+#' @export
+#'
 #' @importFrom dplyr filter group_by mutate
 #' @importFrom magrittr %>%
 summarize_THM <- function(labdat) {
