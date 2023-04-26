@@ -47,7 +47,7 @@ apply_calculations <- function(labdat, file_sheet_year){
                                  removal_overall(  column_names, labdat, "DOC", "mg/L C"),
                                  removal_coag_filt(column_names, labdat, "Odour", "T.O.N."),
                                  removal_overall(  column_names, labdat, "Odour", "T.O.N.")) %>%
-    mutate(parm_eval = "calculated")
+    mutate(parm_eval = "calculated_inscript")
 
   return(calculated_values)
 
@@ -754,10 +754,10 @@ removal_GACfilt <- function(column_names, labdat, parameter, units){
             Clearwell = NA_real_, PreGAC = NA_real_)
 
   parms <- c(parameter)
-  stationlist = c("Clearwell", "PreGAC")
+  station_list = c("Clearwell", "PreGAC")
 
   df <- labdat %>%
-    filter(parameter %in% parms, station %in% stationlist, unit == units) %>%
+    filter(parameter %in% parms, station %in% station_list, unit == units) %>%
     # In labdat files, values are "uncalculable" based on eqn
     # IF(OR(PreGAC DOC = 0, Clearwell DOC = 0))
     # Empty cells and cells with value 0 return TRUE for this if statement.
