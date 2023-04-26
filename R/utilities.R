@@ -85,12 +85,20 @@ determine_NA_NC <- function(df, col1, col2, include_between = F, col_name) {
 #' @return Dataframe with desired columns in the desired order
 handle_missing_cols <- function(df, cols) {
 
+  missing_cols <- setdiff(names(cols), names(df))
+
   df <- df %>%
     # For cases where parameters are missing and df is therefore missing columns
     # from `cols`, add in those columns (fill with NA)
-    add_column(!!!cols[setdiff(names(cols), names(.))]) %>%
+    add_column(!!!cols[missing_cols]) %>%
     # If a column was added, columns must be reordered
     select(rownames(as.data.frame(cols)))
+
+  # Some columns are missing. We are not calculating this value at all. Return
+  # an empty dataframe so that the calculation equation also returns and empty df
+  if (length(missing_cols != 0)) {
+    df <- df[0,]
+  }
 
   return(df)
 
