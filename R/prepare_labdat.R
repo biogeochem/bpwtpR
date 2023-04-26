@@ -33,6 +33,7 @@
 #' @importFrom cellranger cell_limits
 #' @importFrom zoo na.locf
 #' @importFrom writexl write_xlsx
+#' @importFrom purrr map_df
 #'
 prepare_labdat <- function(path_to_labdat_file,
                            path_to_db_file,

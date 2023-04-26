@@ -158,13 +158,13 @@ scrape_clearwell <- function(weekly_data, clearwell_start, labdat_parameters) {
                                grepl("BAC ?M", parameter, ignore.case = TRUE)
                                ~ "BAC M",
                                grepl("MM ?F ?1", parameter, ignore.case = TRUE)
-                               ~ "MMF1",
+                               ~ "MMF 1",
                                grepl("MM ?F ?12", parameter, ignore.case = TRUE)
-                               ~ "MMF12",
+                               ~ "MMF 12",
                                grepl("MM ?F ?A", parameter, ignore.case = TRUE)
-                               ~ "MMFA",
+                               ~ "MMF A",
                                grepl("MM ?F ?L", parameter, ignore.case = TRUE)
-                               ~ "MMFL",
+                               ~ "MMF L",
                                grepl("Channel(?! ?[12])", parameter, ignore.case = TRUE,
                                      perl = TRUE)
                                ~ "Channel",
@@ -282,9 +282,9 @@ scrape_clearwell_al <- function(weekly_data, clearwell_start, labdat_parameters)
     mutate(station = case_when(row_number() == 1 | row_number() == 2 | row_number() == 3
                                ~ "Clearwell",
                                row_number() == 4
-                               ~ "MMF1",
+                               ~ "MMF 1",
                                row_number() == 5
-                               ~ "MMF12",
+                               ~ "MMF 12",
                                row_number() == 6 | row_number() == 7
                                ~ "PreGAC")) %>%
     select(parameter = Parameters, unit = Units,
@@ -295,12 +295,12 @@ scrape_clearwell_al <- function(weekly_data, clearwell_start, labdat_parameters)
     filter(!is.na(date_ymd)) %>%
     # Mixed Media Filter 1 and 12 are renamed to Mixed Media Filter A and L,
     # respectively, in the 2004 sheet and onwards
-    mutate(station = ifelse(station == "MMF1" &
+    mutate(station = ifelse(station == "MMF 1" &
                               year(date_ymd) >= 2004,
-                            "MMFA", station),
-           station = ifelse(station == "MMF12" &
+                            "MMF A", station),
+           station = ifelse(station == "MMF 12" &
                               year(date_ymd) >= 2004,
-                            "MMFL", station)) %>%
+                            "MMF L", station)) %>%
     add_column(datasheet = "Clearwell") %>%
     select(datasheet, station, parameter, unit, date_ymd, result)
 

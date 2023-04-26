@@ -37,7 +37,7 @@ check_parameters_setup <- function(labdat_parameters) {
                          station   = c("Clearwell", "Raw", "PreGAC/Clearwell",
                                        "PreGAC", "PreFM", "FM",
                                        "Train A", "Train B",
-                                       "MMF1", "MMF12", "MMFA", "MMFL",
+                                       "MMF 1", "MMF 12", "MMF A", "MMF L",
                                        "BAC E", "BAC M", "PreBAC",
                                        "Channel", "Channel 1", "Channel 2",
                                        "Combined Stations"),
@@ -46,6 +46,7 @@ check_parameters_setup <- function(labdat_parameters) {
                                        "traceConstituents", "physical", "THM",
                                        "biological", "bacteriological"))
 
+  # Fix any mistakes in upper vs lower case
   for (i in 1:length(unlist(correct_inputs))) {
     gsub(unlist(correct_inputs)[i], unlist(correct_inputs)[i],
          labdat_parameters$datasheet,
@@ -108,94 +109,50 @@ check_parameters_setup <- function(labdat_parameters) {
          call. = FALSE)
   }
 
-  # Checking listed stations for Raw datasheet vals ----------------------------
+  # Checking stations match between station and param --------------------------
 
   # Want the only params that have station != Raw to be THMs and params w PreFM,
   # Train A, Train B in the param name
-  rw <- labdat_parameters %>%
-    # Have already determined that THMs were done correctly and do not need to
-    # be rechecked
-    as.data.table() %>%
-    fsetdiff(filter_thms(.)) %>%
-    as.data.frame() %>%
-    filter(datasheet == "Raw",
-           station != "Raw")
-
-  rw_issues <- rw %>%
-    filter(rw$station == "Train A" &
-             !agrepl("Train ?A", rw$parameter, ignore.case = TRUE) |
-           rw$station == "Train B" &
-             !agrepl("Train ?B", rw$parameter, ignore.case = TRUE) |
-           rw$station == "PreFM" &
-             !agrepl("PreFM", rw$parameter, ignore.case = TRUE))
-
-  if (nrow(rw_issues) != 0) {
-    print.data.frame(rw_issues)
-    stop(paste("Issue with parameters.xlsx input file at row(s) listed above.",
-               "The tool functions on the premise that all Raw Water values are",
-               "associated with the Raw station EXCEPT for parameters with",
-               "the station names 'Train A', 'Train B', 'PreFM' within the parameter",
-               "name AND Raw THMs.\nIf any of the parameters printed above are associated",
-               "with one of these stations, update the parameter name to contain",
-               "the station name and update parameters.xlsx accordingly.\nIf",
-               "a new station is being input into the DB, contact the tool",
-               "creator.\nCheck file requirements and parameter data."),
-         call. = FALSE)
-  }
-
-  # Checking listed stations for Clearwell datasheet vals ----------------------------
-
-  # Want the only params that have station != Clearwell to be those listed below
-  cw <- labdat_parameters %>%
+  parameters <- labdat_parameters %>%
+    filter(datasheet != "DOCProfile",
+           !grepl("Removal", parameter)) %>%
     # Have already determined that THMs were done correctly and do not need to
     # be rechecked
     as.data.table() %>%
     fsetdiff(filter_thms(.)) %>%
     fsetdiff(filter_al(.)) %>%
-    as.data.frame() %>%
-    filter(datasheet == "Clearwell",
-           station != "Clearwell")
+    as.data.frame()
 
-  # These matches come from those within scrape.R. If one changes, change the other too
-  cw_issues <- cw %>%
-    filter(cw$station == "PreGAC" &
-             !grepl("PreGAC", parameter, ignore.case = TRUE) |
-           cw$station == "MMF1" &
-             !grepl("MM ?F ?1", parameter, ignore.case = TRUE) |
-           cw$station == "MMF12" &
-             !grepl("MM ?F ?12", parameter, ignore.case = TRUE) |
-           cw$station == "MMFA" &
-             !grepl("MM ?F ?A", parameter, ignore.case = TRUE) |
-           cw$station == "MMFL" &
-             !grepl("MM ?F ?L", parameter, ignore.case = TRUE) |
-           cw$station == "Channel" &
-             !grepl("Channel(?! ?[12])", parameter, ignore.case = TRUE,
-                    perl = TRUE) |
-           cw$station == "Channel 1" &
-             !grepl("Channel ?1", parameter, ignore.case = TRUE,
-                    perl = TRUE) |
-           cw$station == "Channel 2" &
-             !grepl("Channel ?2", parameter, ignore.case = TRUE) |
-           cw$station == "PreFM" &
-             !grepl("PreFM", parameter, ignore.case = TRUE) |
-           cw$station == "FM" &
-             !grepl("(?<!Pre)FM", parameter, ignore.case = TRUE,
-                    perl = TRUE))
+  # We can use regex to match both the station and parameter as we've already
+  # checked that the station is correctly inputted
+  stations <- c("PreGAC/Clearwell",
+                "PreGAC", "PreFM", "FM",
+                "Train ?A", "Train ?B",
+                "MMF ?1", "MMF ?12", "MMF ?A", "MMF ?L",
+                "BAC ?E", "BAC ?M", "PreBAC",
+                "Channel", "Channel ?1", "Channel ?2")
 
-  if (nrow(cw_issues) != 0) {
-    print.data.frame(cw_issues)
-    stop(paste("Issue with parameters.xlsx input file at row(s) listed above.",
-               "The tool functions on the premise that all Clear Well values are",
-               "associated with the Clearwell station EXCEPT for THM and Al",
-               "parameters and those with acceptable Clearwell station names",
-               "within the parameter name. Those stations are: PreGAC, PreFM, FM",
-               "Train A, Train B, MMF1, MMF12, MMFA, MMFL, Channel, Channel 1,",
-               "Channel 2.",
-               "\nIf any of the parameters printed above are associated",
-               "with one of these stations, update the parameter name to contain",
-               "the station name and update parameters.xlsx accordingly.\nIf",
-               "a new station is being input into the DB, contact the tool",
-               "creator.\nCheck file requirements and parameter data."),
+  check_stations <- function(station_pattern, parameters) {
+    issues <- parameters %>%
+      filter((grepl(station_pattern, station, ignore.case = TRUE) &
+               !grepl(station_pattern, parameter, ignore.case = TRUE)) |
+             (!grepl(station_pattern, station, ignore.case = TRUE) &
+               grepl(station_pattern, parameter, ignore.case = TRUE)))
+  }
+
+  issues <- unique(map_df(stations, check_stations, parameters))
+
+  if (nrow(issues) != 0) {
+    print.data.frame(issues)
+    stop(paste("Within the Raw and Clearwell data, the tool assigns the station",
+               "based on the parameter name. For most parameters, the tool",
+               "requires that, if the is a station name within the parameter",
+               "name, that station is entered in the associated station cell.",
+               "\nie: If tbl_parameter is 'Coagulation pH - Channel 1',",
+               "tbl_station is 'Channel 1', and vice-versa.",
+               "\nSome of the rows in parameters.xlsx do not match this",
+               "requirement. They are printed above. Edit the file such that",
+               "this requirement is met."),
          call. = FALSE)
   }
 
@@ -455,4 +412,3 @@ check_scraped_data <- function(new_data, labdat_parameters) {
   return(new_data)
 
 }
-

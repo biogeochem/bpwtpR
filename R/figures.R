@@ -24,7 +24,7 @@ plot_all_parameters <- function(df, year_select = "",
                                                  "PreFM", "FM",
                                                  "Channel",
                                                  "Channel 1","Channel 2",
-                                                 "MMF1", "MMF12", "MMFA", "MMFL",
+                                                 "MMF 1", "MMF 12", "MMF A", "MMF L",
                                                  "Combined Stations",
                                                  "all"),
                                 outdir){

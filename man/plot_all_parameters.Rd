@@ -10,7 +10,7 @@ plot_all_parameters(
   parameter_group = c("physical", "biological", "bacteriological", "majorConstituents",
     "traceConstituents", "operations", "THM", "all"),
   station_list = c("Raw", "Clearwell", "PreGAC", "PreFM", "FM", "Channel", "Channel 1",
-    "Channel 2", "MMF1", "MMF12", "MMFA", "MMFL", "Combined Stations", "all"),
+    "Channel 2", "MMF 1", "MMF 12", "MMF A", "MMF L", "Combined Stations", "all"),
   outdir
 )
 }
