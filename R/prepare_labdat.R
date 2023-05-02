@@ -11,6 +11,7 @@
 #' @param path_to_parameters string. Full path (from root directory) to the
 #'  .xlsx file that contains the desired parameters and associated info
 #'  (station, units, corrected units...)
+#' @param file_sheet_year numeric. The year of the labdata file of interest
 #'
 #' @return dataframe containing the processed lab data that has been inserted
 #'  into the database file
@@ -37,7 +38,8 @@
 #'
 prepare_labdat <- function(path_to_labdat_file,
                            path_to_db_file,
-                           path_to_parameters) {
+                           path_to_parameters,
+                           file_sheet_year) {
 
   # Have issues occasionally with R giving values in scientific notation. Not
   # desired for the sake of consistency
@@ -47,9 +49,6 @@ prepare_labdat <- function(path_to_labdat_file,
     read_parameters() %>%
     check_parameters_setup()
 
-  file_sheet_year <- str_extract(last(unlist(str_split(path_to_labdat_file,
-                                                       "/"))),
-                                 "[12][0-9]{3}")
   print(sprintf("File Year: %s", file_sheet_year))
 
   # Load data ------------------------------------------------------------------

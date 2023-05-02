@@ -266,7 +266,9 @@ check_parameters_rwcw <- function(path_to_labdat_file, path_to_parameters) {
 
   labdat_parameters <- path_to_parameters %>%
     read_parameters() %>%
-    check_parameters_setup()
+    # By the time check_parameters_setup is being run here, the fn will already
+    # have been called. Messages printed are therefore not needed this time
+    suppressMessages(check_parameters_setup())
 
   skip_num <- 7
 
@@ -332,7 +334,9 @@ check_parameters_doc <- function(path_to_labdat_file, path_to_parameters) {
 
   labdat_parameters <- path_to_parameters %>%
     read_parameters() %>%
-    check_parameters_setup() %>%
+    # By the time check_parameters_setup is being run here, the fn will already
+    # have been called. Messages printed are therefore not needed this time
+    suppressMessages(check_parameters_setup())
     filter(datasheet == "DOCProfile")
 
   weekly_data <- read_doc(path_to_labdat_file)

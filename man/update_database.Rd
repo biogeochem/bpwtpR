@@ -4,7 +4,12 @@
 \alias{update_database}
 \title{Update database with data contained in the specified labdat file}
 \usage{
-update_database(path_to_labdat_file, path_to_db_file, path_to_parameters)
+update_database(
+  path_to_labdat_file,
+  path_to_db_file,
+  path_to_parameters,
+  file_sheet_year = NULL
+)
 }
 \arguments{
 \item{path_to_labdat_file}{string. Full path (from root directory) to the lab
@@ -17,6 +22,8 @@ does not exist}
 \item{path_to_parameters}{string. Full path (from root directory) to the
 .xlsx file that contains the desired parameters and associated info
 (station, units, corrected units...)}
+
+\item{file_sheet_year}{numeric. The year of the labdata file of interest}
 }
 \value{
 dataframe containing the processed lab data that has been newly

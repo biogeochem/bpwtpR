@@ -139,6 +139,7 @@ create_doc_colnames <- function(val1, val2, val3) {
 #' @inheritParams prepare_labdat
 #'
 #' @return dataframe containing the parameters info
+#' @export
 read_parameters <- function(path_to_parameters) {
   labdat_parameters <- read_xlsx(path_to_parameters) %>%
     mutate(tbl_parameter = as.character(tbl_parameter),
