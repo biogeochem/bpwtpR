@@ -180,12 +180,8 @@ prepare_labdat <- function(path_to_labdat_file,
     select(datasheet, sheet_year, station, date_ymd,
            parameter, unit,	parm_eval, parm_tag,
            result, result_org, result_flag) %>%
-    mutate_if(is.character, as.factor)
-
-  # Saving as csv converts NaN to NA. Setting NaN as -999999 for now in case if
-  # Stephen (the DB expert) has some work around to this conversion for Access
-  new_data <- new_data %>%
-    mutate(result = replace(result, is.nan(result), -999999))
+    mutate_if(is.character, as.factor) %>%
+    filter(!is.na(result))
 
   # Blair would like DB colnames to start with "tbl_"
   colnames(new_data) <- paste("tbl", colnames(new_data), sep = "_")
