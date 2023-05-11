@@ -16,26 +16,15 @@ create_database <- function(path_to_labdat_dir,
                             path_to_parameters,
                             file_sheet_year = NULL) {
 
-  # RShiny converts files into a Temp file so the original filename is lost.
-  # The app will therefore calculate the year itself, and any user that needs
-  # to use the script directly (ie filename is not lost) will have the sheet_year
-  # calculated for them
-  if (is.na(file_sheet_year) | is.null(file_sheet_year)) {
-    file_sheet_year <- str_extract(last(unlist(str_split(path_to_labdat_file,
-                                                         "/"))),
-                                   "[12][0-9]{3}")
-  }
-
   # Want files that don't start with ~ as these are not useable files
   path_to_labdat_files <- list.files(path = path_to_labdat_dir,
                                      pattern = "^[12(ROUTINE)].+xlsx",
                                      full.names = TRUE)
 
   map(path_to_labdat_files,
-      prepare_labdat,
+      update_database,
       path_to_db_file,
-      path_to_parameters,
-      file_sheet_year)
+      path_to_parameters)
 
 }
 
@@ -55,7 +44,7 @@ update_database <- function(path_to_labdat_file,
   # The app will therefore calculate the year itself, and any user that needs
   # to use the script directly (ie filename is not lost) will have the sheet_year
   # calculated for them
-  if (is.na(file_sheet_year) | is.null(file_sheet_year)) {
+  if (is.na(file_sheet_year) || is.null(file_sheet_year)) {
     file_sheet_year <- str_extract(last(unlist(str_split(path_to_labdat_file,
                                                          "/"))),
                                    "[12][0-9]{3}")
