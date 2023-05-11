@@ -82,7 +82,7 @@ al_particulate <- function(column_names, labdat) {
                                 ~ `Aluminum (total)` - `Aluminum (dissolved)`,
                               TRUE
                                 ~ result),
-           result = round(result, 2),
+           result = round(result, 0),
            parameter = "Aluminum (particulate)", unit = "\u00b5g/L",
            parm_tag  = "traceConstituents") %>%
     select(all_of(column_names))
@@ -152,7 +152,7 @@ PACl <- function(column_names, labdat) {
     group_by(sheet_year, date_ymd) %>%
     summarise(result = mean(c(`PACl_Train A`, `PACl_Train B`), na.rm = TRUE)) %>%
     mutate(result = ifelse(is.nan(result), NA, result),
-           result = round(result, 2),
+           result = round(result, 1),
            datasheet = "Raw",
            station = "Raw",
            parameter = "PACl", unit = "mg/L",
@@ -176,7 +176,7 @@ PACl_DAE <- function(column_names, PACl_values) {
 
   df <- PACl_values %>%
     mutate(result = .data$result*2.07,
-           result = round(.data$result, 2),
+           result = round(.data$result, 1),
            unit ="mg/L DAE") %>%
     select(all_of(column_names))
 
@@ -225,7 +225,7 @@ overall_coag_dose <- function(column_names, labdat, PACl_DAE_values) {
                                    ~ mean(c(PACl_DAE, Alum), na.rm = TRUE),
                                  TRUE
                                    ~ result)) %>%
-    mutate(result = round(result, 2),
+    mutate(result = round(result, 1),
            datasheet = "Raw", station = "Raw",
            parameter = "Overall Coagulant Dose", unit = "mg/L DAE",
            parm_tag = "operations") %>%
@@ -598,7 +598,7 @@ turbidity_logRemoval <- function(column_names, labdat) {
     mutate(result = case_when(!is.na(result) ~ log10(RW_Turbidity / CW_Turbidity),
                               TRUE ~ result),
            result = ifelse(is.infinite(result), NA, result),
-           result = round(result, 2),
+           result = round(result, 1),
            datasheet = "Clearwell", station = "Combined Stations",
            parameter = "Turbidity Log Removal", unit = "ratio",
            parm_tag = "physical") %>%
@@ -683,7 +683,7 @@ removal_coag_filt <- function(column_names, labdat, parameter, units){
                       ifelse(!is.na(raw_vs_pregac),
                              percent_yield(pre = Raw, post = PreGAC),
                              raw_vs_pregac)),
-           result = round(result, 2),
+           result = round(result, 1),
            datasheet = "Clearwell", station = "Combined Stations",
            parm_tag  = paste(ifelse(parameter == "Odour", "physical", "traceConstituents")),
            parameter = paste(parameter, "Removal - Coagulation & Filtration", sep = " "),
@@ -726,7 +726,7 @@ removal_overall <- function(column_names, labdat, parameter, units){
     determine_NA_NC(3, 4) %>%
     mutate(result = case_when(!is.na(result) ~ percent_yield(pre = Raw, post = Clearwell),
                               TRUE ~ result),
-           result = round(result, 2),
+           result = round(result, 1),
            datasheet = "Clearwell", station = "Combined Stations",
            parm_tag  = paste(ifelse(parameter == "Odour", "physical", "traceConstituents")),
            parameter = paste(parameter, "Removal - Overall", sep = " "),
@@ -770,7 +770,7 @@ removal_GACfilt <- function(column_names, labdat, parameter, units){
     determine_NA_NC(3, 4) %>%
     mutate(result = case_when(!is.na(result) ~ percent_yield(pre = PreGAC, post = Clearwell),
                               TRUE ~ result),
-           result = round(result, 2),
+           result = round(result, 1),
            datasheet = "Clearwell", station = "Combined Stations",
            unit      = "%",
            parm_tag  = "traceConstituents",

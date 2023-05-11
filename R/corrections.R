@@ -71,7 +71,6 @@ round_values <- function(labdat) {
                                    parameter == "Turbidity Log Removal"
                                  ~ as.character(round(as.numeric(result_org), 1)),
                                  parameter == "Langelier Saturation Index 2" |
-                                   parameter == "Aluminum (particulate)" |
                                    parameter == "Alum to DOC ratio" |
                                    parameter == "Anion Sum" |
                                    parameter == "Cation Sum" |
@@ -81,10 +80,11 @@ round_values <- function(labdat) {
                                  # Removal values are stored as digits but
                                  # displayed as percent (0.75 vs 75%)
                                  grepl("Removal", parameter, ignore.case = TRUE)
-                                 ~ as.character(round(as.numeric(result_org), 2)),
+                                 ~ as.character(round(as.numeric(result_org), 1)),
                                  grepl("SUVA", parameter, ignore.case = TRUE)
                                  ~ as.character(round(as.numeric(result_org), 4)),
                                  parameter == "Total THMs" |
+                                   parameter == "Aluminum (particulate)" |
                                    parameter == "Dissolved Solids"
                                  ~ as.character(round(as.numeric(result_org), 0)),
                                  TRUE ~ result_org),
@@ -97,7 +97,6 @@ round_values <- function(labdat) {
                                    parameter == "Turbidity Log Removal"
                                  ~ round(result, 1),
                                  parameter == "Langelier Saturation Index 2" |
-                                   parameter == "Aluminum (particulate)" |
                                    parameter == "Alum to DOC ratio" |
                                    parameter == "Anion Sum" |
                                    parameter == "Cation Sum" |
@@ -105,10 +104,11 @@ round_values <- function(labdat) {
                                    parameter == "Langelier Index (RTW)"
                                  ~ round(result, 2),
                                  grepl("Removal -", parameter, ignore.case = TRUE)
-                                 ~ round(result, 3),
+                                 ~ round(result, 1),
                                  grepl("SUVA", parameter, ignore.case = TRUE)
                                  ~ round(result, 4),
                                  parameter == "Total THMs" |
+                                   parameter == "Aluminum (particulate)" |
                                    parameter == "Dissolved Solids"
                                  ~ round(result, 0),
                                  TRUE ~ result)) %T>%
