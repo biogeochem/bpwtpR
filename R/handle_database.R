@@ -13,17 +13,18 @@
 #' @importFrom purrr map
 create_database <- function(path_to_labdat_dir,
                             path_to_db_file,
+                            path_to_db_dates_file,
                             path_to_parameters,
                             file_sheet_year = NULL) {
 
   # Want files that don't start with ~ as these are not useable files
   path_to_labdat_files <- list.files(path = path_to_labdat_dir,
-                                     pattern = "^[12(ROUTINE)].+xlsx",
                                      full.names = TRUE)
 
   map(path_to_labdat_files,
       update_database,
       path_to_db_file,
+      path_to_db_dates_file,
       path_to_parameters)
 
 }
@@ -37,6 +38,7 @@ create_database <- function(path_to_labdat_dir,
 #' @export
 update_database <- function(path_to_labdat_file,
                             path_to_db_file,
+                            path_to_db_dates_file,
                             path_to_parameters,
                             file_sheet_year = NULL) {
 
@@ -45,13 +47,13 @@ update_database <- function(path_to_labdat_file,
   # to use the script directly (ie filename is not lost) will have the sheet_year
   # calculated for them
   if (is.na(file_sheet_year) || is.null(file_sheet_year)) {
-    file_sheet_year <- str_extract(last(unlist(str_split(path_to_labdat_file,
-                                                         "/"))),
+    file_sheet_year <- str_extract(basename(path_to_labdat_file),
                                    "[12][0-9]{3}")
   }
 
   prepare_labdat(path_to_labdat_file,
                  path_to_db_file,
+                 path_to_db_dates_file,
                  path_to_parameters,
                  file_sheet_year)
 

@@ -7,6 +7,7 @@
 create_database(
   path_to_labdat_dir,
   path_to_db_file,
+  path_to_db_dates_file,
   path_to_parameters,
   file_sheet_year = NULL
 )
@@ -17,6 +18,10 @@ the lab data files to be entered into the database file}
 
 \item{path_to_db_file}{string. Full path (from root directory) to the .csv
 database file if it exists, and desired path to a .csv database file if it
+does not exist}
+
+\item{path_to_db_dates_file}{string. Full path (from root directory) to the .csv
+database dates file if it exists, and desired path to a .csv database dates file if it
 does not exist}
 
 \item{path_to_parameters}{string. Full path (from root directory) to the

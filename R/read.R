@@ -17,7 +17,6 @@ read_db <- function(path_to_db_file) {
   # The DB does not yet exist
   if (file.exists(fpath) == FALSE) {
     labdat <- NULL
-    print("Existing database was not input. Database will be newly created.")
   } else {
     labdat <- fpath %>%
       read.csv(fileEncoding = "ISO-8859-1") %>%

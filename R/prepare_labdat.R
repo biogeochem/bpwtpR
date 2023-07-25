@@ -8,6 +8,9 @@
 #' @param path_to_db_file string. Full path (from root directory) to the .csv
 #'  database file if it exists, and desired path to a .csv database file if it
 #'  does not exist
+#' @param path_to_db_dates_file string. Full path (from root directory) to the .csv
+#'  database dates file if it exists, and desired path to a .csv database dates file if it
+#'  does not exist
 #' @param path_to_parameters string. Full path (from root directory) to the
 #'  .xlsx file that contains the desired parameters and associated info
 #'  (station, units, corrected units...)
@@ -38,6 +41,7 @@
 #'
 prepare_labdat <- function(path_to_labdat_file,
                            path_to_db_file,
+                           path_to_db_dates_file,
                            path_to_parameters,
                            file_sheet_year) {
 
@@ -54,7 +58,8 @@ prepare_labdat <- function(path_to_labdat_file,
   # Load data ------------------------------------------------------------------
   print("Loading data...")
 
-  old_data <- read_db(path_to_db_file)
+  old_data <- read_db(path_to_db_file) %>%
+    rbind(read_db(path_to_db_dates_file))
 
   new_data_weekly <- path_to_labdat_file %>%
     read_weekly() %>%
@@ -180,30 +185,31 @@ prepare_labdat <- function(path_to_labdat_file,
     select(datasheet, sheet_year, station, date_ymd,
            parameter, unit,	parm_eval, parm_tag,
            result, result_org, result_flag) %>%
-    mutate_if(is.character, as.factor) %>%
-    filter(!is.na(result))
+    # Blair does not want any of the NA data in the final DB
+    filter(!is.na(result)) %>%
+    # in-script calculations yield NA result_org and _flag, but should be ""
+    # to match with the sheet values
+    mutate(result_org = ifelse(is.na(result_org), "", result_org),
+           result_flag = ifelse(is.na(result_flag), "", result_flag))
 
   # Blair would like DB colnames to start with "tbl_"
   colnames(new_data) <- paste("tbl", colnames(new_data), sep = "_")
 
-  # write.table() allows us to append the new data, rather than re-writing all
-  # of the data to the file
-  if (is.null(old_data)) {
-    suppressWarnings(write.table(new_data, path_to_db_file,
-                                 append = TRUE,
-                                 row.names = FALSE, col.names = TRUE,
-                                 fileEncoding = "ISO-8859-1",
-                                 sep = ","))
-  } else {
-    suppressWarnings(write.table(new_data, path_to_db_file,
-                                 append = TRUE,
-                                 row.names = FALSE, col.names = FALSE,
-                                 fileEncoding = "ISO-8859-1",
-                                 sep = ","))
-  }
+  # We must split all data away from dates data because R will store all the result
+  # values as numeric, thereby losing the actual date for date data
+  new_data_dates <- new_data %>%
+    filter(tbl_unit == "ymd") %>%
+    mutate(tbl_result = excel_numeric_to_date(tbl_result),
+           tbl_result_org = excel_numeric_to_date(as.numeric(tbl_result_org)))
+
+  new_data <- new_data %>%
+    filter(tbl_unit != "ymd")
+
+  write_data(old_data, new_data, path_to_db_file)
+  write_data(old_data, new_data_dates, path_to_db_dates_file)
 
   print("Database updated.")
 
-  return(new_data)
+  return(list(new_data, new_data_dates))
 
 }
