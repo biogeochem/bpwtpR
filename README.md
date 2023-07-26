@@ -8,6 +8,7 @@ This project was completed as part of the MITACs accelerate program (IT17066) an
 
 - Megan L. Larsen, Wilfrid Laurier University, mlarsen@wlu.ca, ORCID 0000-0002-4155-1293
 - Anthony A.P. Baron, University of Saskatchewan
+- Lana Vuleta, University of Saskatchewan, lana.vuleta@usask.ca
 
 ## Principle Investigators
 
