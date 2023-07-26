@@ -31,7 +31,10 @@ does not exist}
 \item{file_sheet_year}{numeric. The year of the labdata file of interest}
 }
 \value{
-dataframe containing the processed lab data that has been inserted
+list of length 3.
+\link{1} boolean. Are the provided database files empty or not?
+\link{2} dataframe containing the processed lab data (not dates)
+\link{3} dataframe containing the processed lab data (dates)
 into the database file
 }
 \description{

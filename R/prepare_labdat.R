@@ -16,7 +16,10 @@
 #'  (station, units, corrected units...)
 #' @param file_sheet_year numeric. The year of the labdata file of interest
 #'
-#' @return dataframe containing the processed lab data that has been inserted
+#' @return list of length 3.
+#'  [1] boolean. Are the provided database files empty or not?
+#'  [2] dataframe containing the processed lab data (not dates)
+#'  [3] dataframe containing the processed lab data (dates)
 #'  into the database file
 #' @importFrom magrittr "%>%" "%T>%"
 #' @importFrom tibble add_column
@@ -205,11 +208,8 @@ prepare_labdat <- function(path_to_labdat_file,
   new_data <- new_data %>%
     filter(tbl_unit != "ymd")
 
-  write_data(old_data, new_data, path_to_db_file)
-  write_data(old_data, new_data_dates, path_to_db_dates_file)
+  print("Updated database available for download.")
 
-  print("Database updated.")
-
-  return(list(new_data, new_data_dates))
+  return(list(is.null(old_data), new_data, new_data_dates))
 
 }
