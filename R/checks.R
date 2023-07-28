@@ -12,20 +12,28 @@ check_parameters_setup <- function(labdat_parameters) {
   # To keep track of if changes have been made. If they have,
   parameters_changed <- FALSE
 
-  labdat_parameters_cols <- c("datasheet",	"station",	"parameter",
-                              "parameter_updated",	"unit",
-                              "unit_updated",
-                              "parm_eval",	"parm_tag")
+  labdat_parameters_cols <- c("tbl_datasheet",	"tbl_station",	"tbl_parameter",
+                              "tbl_parameter_updated",	"tbl_unit",
+                              "tbl_unit_updated",
+                              "tbl_parm_eval",	"tbl_parm_tag")
 
   # Checking col names ---------------------------------------------------------
   if (!identical(colnames(labdat_parameters), labdat_parameters_cols)) {
     stop(paste("Issue with parameters.xlsx input file.",
                "Column names have been edited.",
                sprintf("Expected column names are: %s",
-                       paste(paste0("tbl_", labdat_parameters_cols), collapse = ' ')),
+                       paste(labdat_parameters_cols, collapse = ' ')),
                "Check file requirements and parameter data."),
          call. = FALSE)
   }
+
+  # To simplify column names while the data frame is being used. Blair wanted
+  # columns to start with _tbl
+  colnames(labdat_parameters) <- str_remove(colnames(labdat_parameters), "tbl_")
+
+  labdat_parameters <- labdat_parameters %>%
+    mutate(parameter = as.character(parameter),
+           unit = as.character(unit))
 
   # Checking datasheet, station, parm_eval, parm_tag ---------------------------
   # Want to make sure that these columns are named consistently. Just handling
@@ -219,31 +227,7 @@ check_parameters_setup <- function(labdat_parameters) {
 
   # Checking for duplicate rows ------------------------------------------------
   if (anyDuplicated(labdat_parameters) != 0) {
-    parameters_changed <- TRUE
-
-    # Want to eliminate any duplicates as they will create duplicate data in final
-    # dataframe
-    message("Duplicate rows were identified in parameters.xlsx. Deleting duplicates.")
-
     labdat_parameters <- unique(labdat_parameters)
-  }
-
-  # Rewriting parameters.xlsx if needed ----------------------------------------
-  # Something had to be changed in the parameters.xlsx doc and should be used
-  # in all future usage of this tool
-  if (parameters_changed) {
-    # Blair would like colnames to start with "tbl_"
-    colnames(labdat_parameters) <- paste("tbl", colnames(labdat_parameters), sep = "_")
-
-    try_write <- try(write_xlsx(labdat_parameters, path_to_parameters),
-                     silent = TRUE)
-
-    if (inherits(try_write, c("try-error"))) {
-      stop(paste("Was unable to perform the required rewrites to parameters.xlsx.",
-                 "If the document is open, close it and try again. Otherwise,",
-                 "ensure that your computer permissions allow this tool to",
-                 "perform rewrites."))
-    }
   }
 
   print("Successfully checked parameters.xlsx. Continue with use of tool.")

@@ -32,10 +32,12 @@ does not exist}
 }
 \value{
 list of length 3.
-\link{1} boolean. Are the provided database files empty or not?
-\link{2} dataframe containing the processed lab data (not dates)
-\link{3} dataframe containing the processed lab data (dates)
+\enumerate{
+\item boolean. Are the provided database files empty or not?
+\item dataframe containing the processed lab data (not dates)
+\item dataframe containing the processed lab data (dates)
 into the database file
+}
 }
 \description{
 Prepare lab data for incorporation into database. Extract the data that is

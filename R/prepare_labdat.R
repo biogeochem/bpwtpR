@@ -17,9 +17,9 @@
 #' @param file_sheet_year numeric. The year of the labdata file of interest
 #'
 #' @return list of length 3.
-#'  [1] boolean. Are the provided database files empty or not?
-#'  [2] dataframe containing the processed lab data (not dates)
-#'  [3] dataframe containing the processed lab data (dates)
+#'  1. boolean. Are the provided database files empty or not?
+#'  2. dataframe containing the processed lab data (not dates)
+#'  3. dataframe containing the processed lab data (dates)
 #'  into the database file
 #' @importFrom magrittr "%>%" "%T>%"
 #' @importFrom tibble add_column

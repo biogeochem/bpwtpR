@@ -140,13 +140,7 @@ create_doc_colnames <- function(val1, val2, val3) {
 #' @return dataframe containing the parameters info
 #' @export
 read_parameters <- function(path_to_parameters) {
-  labdat_parameters <- read_xlsx(path_to_parameters) %>%
-    mutate(tbl_parameter = as.character(tbl_parameter),
-           tbl_unit = as.character(tbl_unit))
-
-  # To simplify column names while the data frame is being used. Blair wanted
-  # columns to start with _tbl
-  colnames(labdat_parameters) <- str_remove(colnames(labdat_parameters), "tbl_")
+  labdat_parameters <- read_xlsx(path_to_parameters)
 
   return(labdat_parameters)
 }
