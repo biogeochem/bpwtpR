@@ -248,11 +248,9 @@ check_parameters_setup <- function(labdat_parameters) {
 #' @export
 check_parameters_rwcw <- function(path_to_labdat_file, path_to_parameters) {
 
-  labdat_parameters <- path_to_parameters %>%
-    read_parameters() %>%
+  labdat_parameters <- suppressMessages(check_parameters_setup(read_parameters(path_to_parameters)))
     # By the time check_parameters_setup is being run here, the fn will already
     # have been called. Messages printed are therefore not needed this time
-    suppressMessages(check_parameters_setup())
 
   skip_num <- 7
 
