@@ -26,7 +26,7 @@
 #' @importFrom lubridate as_datetime year month day yday week
 #' @importFrom dplyr case_when distinct filter first mutate rename row_number
 #'  select mutate_if left_join group_by summarise arrange bind_rows last nth
-#'  ungroup full_join
+#'  ungroup full_join n
 #' @importFrom stats complete.cases
 #' @importFrom janitor excel_numeric_to_date
 #' @importFrom tidyr pivot_longer replace_na pivot_wider

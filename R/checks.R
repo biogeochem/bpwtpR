@@ -22,8 +22,7 @@ check_parameters_setup <- function(labdat_parameters) {
     stop(paste("Issue with parameters.xlsx input file.",
                "Column names have been edited.",
                sprintf("Expected column names are: %s",
-                       paste(labdat_parameters_cols, collapse = ' ')),
-               "Check file requirements and parameter data."),
+                       paste(labdat_parameters_cols, collapse = ' '))),
          call. = FALSE)
   }
 
@@ -112,8 +111,7 @@ check_parameters_setup <- function(labdat_parameters) {
                 "includes values that are do not adhere to this requirement.",
                 "If Raw Water THM measurement locations have changed, contact",
                 "the tool creator. Otherwise, check that parameters.xlsx is",
-                "filled correctly.",
-                "\nCheck file requirements and parameter data."),
+                "filled correctly."),
          call. = FALSE)
   }
 
@@ -176,8 +174,7 @@ check_parameters_setup <- function(labdat_parameters) {
     stop(paste("Issue with parameters.xlsx input file.",
                "Cells are missing values. Check cells at positions listed above.",
                "Only values in the unit and unit_updated columns can reasonably",
-               "have missing values.",
-               "Check file requirements and parameter data."),
+               "have missing values."),
          call. = FALSE)
   }
 
@@ -315,11 +312,9 @@ check_parameters_rwcw <- function(path_to_labdat_file, path_to_parameters) {
 #' @export
 check_parameters_doc <- function(path_to_labdat_file, path_to_parameters) {
 
-  labdat_parameters <- path_to_parameters %>%
-    read_parameters() %>%
-    # By the time check_parameters_setup is being run here, the fn will already
-    # have been called. Messages printed are therefore not needed this time
-    suppressMessages(check_parameters_setup()) %>%
+  # By the time check_parameters_setup is being run here, the fn will already
+  # have been called. Messages printed are therefore not needed this time
+  labdat_parameters <- suppressMessages(check_parameters_setup(read_parameters(path_to_parameters)))  %>%
     filter(datasheet == "DOCProfile")
 
   weekly_data <- read_doc(path_to_labdat_file)
@@ -330,8 +325,8 @@ check_parameters_doc <- function(path_to_labdat_file, path_to_parameters) {
                                         ignore.case = TRUE, invert = TRUE)]
 
   if (!is_empty(missing_params)) {
-    print(sprintf("The following columns from the DOC profile are not read in: %s",
-            paste(sprintf("%s", missing_params), collapse=", ")))
+    print("The following columns from the DOC profile are not read in:")
+    print(paste(sprintf("%s", missing_params), collapse=", "))
     cat(paste("Note that columns are named by combining all of the header row ",
               "text together (including the contents of merged cells).",
               "\nDo any of these columns contain data that you need?",

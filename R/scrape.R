@@ -27,8 +27,7 @@ scrape_labdatxls <- function(weekly_data, labdat_parameters) {
   if (colnames(weekly_data)[1] != "Parameters") {
     stop(paste("Issue with weekly data column names.",
                "Do column names start on row 8?",
-               "Is the parameters column correctly named as \"Parameters\"?",
-               "Check file requirements and weekly data."),
+               "Is the parameters column correctly named as \"Parameters\"?"),
          call. = FALSE)
   }
 
@@ -36,8 +35,7 @@ scrape_labdatxls <- function(weekly_data, labdat_parameters) {
 
   if (is_empty(clearwell_start)) {
     stop(paste("Issue with the start of the Clear Well data.",
-               "Is the start identified with the string \"CLEAR WELL\"?",
-               "Check file requirements and weekly data."),
+               "Is the start identified with the string \"CLEAR WELL\"?"),
          call. = FALSE)
   }
 
@@ -221,8 +219,7 @@ scrape_clearwell_thms <- function(weekly_data, clearwell_start, labdat_parameter
 
   if (nrow(clearwell_THMs) != 15) {
     stop(paste("Issue with Clear Well THMs.",
-               "Too many rows were identified. There should be 15.",
-               "Check file requirements and weekly data."),
+               "Too many rows were identified. There should be 15."),
          call. = FALSE)
   }
 
@@ -271,8 +268,7 @@ scrape_clearwell_al <- function(weekly_data, clearwell_start, labdat_parameters)
 
   if (nrow(clearwell_Al) != 7) {
     stop(paste("Issue with Clear Well Aluminum values.",
-               "Too many rows were identified. There should be 7.",
-               "Check file requirements and weekly data."),
+               "Too many rows were identified. There should be 7."),
          call. = FALSE)
   }
 
@@ -343,8 +339,7 @@ scrape_ion_values <- function(weekly_data, labdat_parameters) {
                "'RAW' and `SILICA ADDED`, and 'TREATED' and 'SILICA ADDED' in",
                "the Parameters column.\nEither these phrases are missing in",
                "the weekly spreadsheet or are matched more than once. Please",
-               "alter weekly spreadsheet accordingly.",
-               "\nCheck file requirements and weekly data"),
+               "alter weekly spreadsheet accordingly."),
          call. = FALSE)
   }
 
@@ -371,8 +366,7 @@ scrape_ion_values <- function(weekly_data, labdat_parameters) {
                "and Treated Silica Added titles contain ion values. One or more",
                "of those six rows cannot be identified as an ion value as it is",
                "not present in parameters.xlsx. Check which 6 rows are located",
-               "under the ion section titles and ensure they are in parameters.xlsx.",
-               "\nCheck file requirements and weekly data."),
+               "under the ion section titles and ensure they are in parameters.xlsx."),
          call. = FALSE)
   }
 

@@ -184,8 +184,7 @@ update_parameters <- function(labdat, file_sheet_year,
                "parameter (ie has 'Removal' in the parameter name), ensure that",
                "the station is listed as 'Combined Stations' within parameters.xlsx.",
                "\nc) If the parameter is in the WTP DOC sheet, ensure that the",
-               "station name recorded within the header rows is spelled correctly.",
-               "\nCheck file requirements and parameter data."),
+               "station name recorded within the header rows is spelled correctly."),
          call. = FALSE)
 
   }
