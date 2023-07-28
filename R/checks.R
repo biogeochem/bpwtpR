@@ -277,6 +277,7 @@ check_parameters_rwcw <- function(path_to_labdat_file, path_to_parameters) {
               multiple = "all") %>%
     filter(is.na(parameter_updated),
            str_detect(Parameters,
+                      # These are usually the headers, which we do not need
                       "^(([[:upper:]]*\\d*[[:punct:]]*)\\s?)*$",
                       negate = TRUE)) %>%
     left_join(weekly_data, by = c("Parameters", "Units"), multiple = "all") %>%
