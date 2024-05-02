@@ -168,9 +168,10 @@ update_parameters <- function(labdat, file_sheet_year,
     arrange(datasheet)
 
   if (nrow(parm_check) != 0) {
-    print("The following parameters that were read in cannot be identified:")
-    print.data.frame(parm_check)
-    stop(paste("This issue usually arises because of station assignment.\na)",
+
+    stop(print("The following parameters that were read in cannot be identified:\n"),
+         print.data.frame(parm_check),
+         paste("\nThis issue usually arises because of station assignment.\na)",
                "If the parameter is the Raw Water datasheet,",
                "and is associated with the `PreFM`, 'Train A', or 'Train B'",
                "stations, rename the Parameter in the lab data file such that",
