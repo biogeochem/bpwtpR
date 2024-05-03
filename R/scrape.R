@@ -199,7 +199,7 @@ scrape_clearwell <- function(weekly_data, clearwell_start, labdat_parameters) {
 #' @return data frame of the Clearwell THMs data
 scrape_clearwell_thms <- function(weekly_data, clearwell_start, labdat_parameters) {
 
-  # Expecting consistently 4 THM rows for each of Clearwell, Channel, PreGAC
+  # Expecting consistently 4 THM rows for each of Clearwell, Channel, PreBAC
   cw_thms_parms_list <- labdat_parameters %>%
     filter(datasheet == "Clearwell") %>%
     as.data.table() %>%
@@ -215,7 +215,7 @@ scrape_clearwell_thms <- function(weekly_data, clearwell_start, labdat_parameter
                                row_number() >= 6 & row_number() <= 10
                                ~ "Channel",
                                row_number() >= 11 & row_number() <= 15
-                               ~ "PreGAC"))
+                               ~ "PreBAC"))
 
   if (nrow(clearwell_THMs) != 15) {
     stop(paste("Issue with Clear Well THMs.",
@@ -274,7 +274,7 @@ scrape_clearwell_al <- function(weekly_data, clearwell_start, labdat_parameters)
 
   clearwell_Al <- clearwell_Al %>%
     # The expected row setup is as follows: 3 Clearwell Al rows, 1 MMF1 Al row,
-    # 1 MMF12 Al row, 2 PreGAC Al rows
+    # 1 MMF12 Al row, 2 PreBAC Al rows
     mutate(station = case_when(row_number() == 1 | row_number() == 2 | row_number() == 3
                                ~ "Clearwell",
                                row_number() == 4
@@ -282,7 +282,7 @@ scrape_clearwell_al <- function(weekly_data, clearwell_start, labdat_parameters)
                                row_number() == 5
                                ~ "MMF 12",
                                row_number() == 6 | row_number() == 7
-                               ~ "PreGAC")) %>%
+                               ~ "PreBAC")) %>%
     select(parameter = Parameters, unit = Units,
            station, everything()) %>%
     pivot_longer(cols = -c(parameter, unit, station),

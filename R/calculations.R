@@ -647,7 +647,7 @@ tot_B_BG_algae <- function(column_names, labdat) {
 #' Calculate removal by coagulation, filtration. Equal to:
 #'  * percent yield between the raw and Clearwell values if Clearwell values
 #'    exist
-#'  * percent yield between the raw and PreGAC values if Clearwell values do not
+#'  * percent yield between the raw and PreBAC values if Clearwell values do not
 #'    exist
 #'
 #' @inheritParams al_particulate
@@ -663,10 +663,10 @@ removal_coag_filt <- function(column_names, labdat, parameter, units){
 
   # Columns required for proper calculation of df
   cols <- c(sheet_year = NA_real_, date_ymd = NA_real_,
-            Raw = NA_real_, Clearwell = NA_real_, PreGAC = NA_real_)
+            Raw = NA_real_, Clearwell = NA_real_, PreBAC = NA_real_)
 
   parms <- c(parameter)
-  station_list = c("Raw", "Clearwell", "PreGAC")
+  station_list = c("Raw", "Clearwell", "PreBAC")
 
   df <- labdat %>%
     filter(parameter %in% parms, station %in% station_list, unit == units) %>%
@@ -674,15 +674,15 @@ removal_coag_filt <- function(column_names, labdat, parameter, units){
     pivot_wider(names_from = station, values_from = result) %>%
     # In case if any of the required parameters are missing
     handle_missing_cols(cols) %>%
-    determine_NA_NC(3, 5, col_name = "raw_vs_pregac") %>%
+    determine_NA_NC(3, 5, col_name = "raw_vs_prebac") %>%
     determine_NA_NC(3, 4, col_name = "raw_vs_clearwell") %>%
-    mutate(result = ifelse(is.na(PreGAC) & !is.na(Clearwell),
+    mutate(result = ifelse(is.na(PreBAC) & !is.na(Clearwell),
                       ifelse(!is.na(raw_vs_clearwell),
                              percent_yield(pre = Raw, post = Clearwell),
                              raw_vs_clearwell),
-                      ifelse(!is.na(raw_vs_pregac),
-                             percent_yield(pre = Raw, post = PreGAC),
-                             raw_vs_pregac)),
+                      ifelse(!is.na(raw_vs_prebac),
+                             percent_yield(pre = Raw, post = PreBAC),
+                             raw_vs_prebac)),
            result = round(result, 1),
            datasheet = "Clearwell", station = "Combined Stations",
            parm_tag  = paste(ifelse(parameter == "Odour", "physical", "traceConstituents")),
@@ -738,7 +738,7 @@ removal_overall <- function(column_names, labdat, parameter, units){
 #' Calculate removal by GAC filtration
 #'
 #' Calculate removal by GAC filtration. Equal to percent yield between the
-#'  PreGAC and Clearwell values
+#'  PreBAC and Clearwell values
 #'
 #' @inheritParams al_particulate
 #' @inheritParams removal_coag_filt
@@ -751,15 +751,15 @@ removal_GACfilt <- function(column_names, labdat, parameter, units){
 
   # Columns required for proper calculation of df
   cols <- c(sheet_year = NA_real_, date_ymd = NA_real_,
-            Clearwell = NA_real_, PreGAC = NA_real_)
+            Clearwell = NA_real_, PreBAC = NA_real_)
 
   parms <- c(parameter)
-  station_list = c("Clearwell", "PreGAC")
+  station_list = c("Clearwell", "PreBAC")
 
   df <- labdat %>%
     filter(parameter %in% parms, station %in% station_list, unit == units) %>%
     # In labdat files, values are "uncalculable" based on eqn
-    # IF(OR(PreGAC DOC = 0, Clearwell DOC = 0))
+    # IF(OR(PreBAC DOC = 0, Clearwell DOC = 0))
     # Empty cells and cells with value 0 return TRUE for this if statement.
     # Therefore, cells with value 0 are converted to NA
     mutate(result = ifelse(result == 0, NA, result)) %>%
@@ -768,7 +768,7 @@ removal_GACfilt <- function(column_names, labdat, parameter, units){
     # In case if any of the required parameters are missing
     handle_missing_cols(cols) %>%
     determine_NA_NC(3, 4) %>%
-    mutate(result = case_when(!is.na(result) ~ percent_yield(pre = PreGAC, post = Clearwell),
+    mutate(result = case_when(!is.na(result) ~ percent_yield(pre = PreBAC, post = Clearwell),
                               TRUE ~ result),
            result = round(result, 1),
            datasheet = "Clearwell", station = "Combined Stations",

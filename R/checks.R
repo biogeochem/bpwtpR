@@ -131,8 +131,8 @@ check_parameters_setup <- function(labdat_parameters) {
 
   # We can use regex to match both the station and parameter as we've already
   # checked that the station is correctly inputted
-  stations <- c("PreGAC/Clearwell",
-                "PreGAC", "PreFM", "FM",
+  stations <- c("PreBAC/Clearwell",
+                "PreBAC", "PreFM", "FM",
                 "Train ?A", "Train ?B",
                 "MMF ?1", "MMF ?12", "MMF ?A", "MMF ?L",
                 "BAC ?E", "BAC ?M", "PreBAC",
